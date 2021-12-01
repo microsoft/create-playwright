@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "strict": true,
+    "allowJs": true,
+    "jsx": "react",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": false,
+  },
+  "compileOnSave": true,
+  "include": ["src"],
+}
