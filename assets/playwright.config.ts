@@ -1,45 +1,74 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
-import path from 'path';
 
-// Reference: https://playwright.dev/docs/test-configuration
+/**
+ * See https://playwright.dev/docs/test-configuration.
+ */
 const config: PlaywrightTestConfig = {
-  testDir: path.join(__dirname, '{{testDir}}'), /* Test directory */
-  forbidOnly: !!process.env.CI,                 /* Whether to exit with an error if any tests or groups are marked as test.only() or test.describe.only(). Useful on CI. */
-  retries: process.env.CI ? 2 : 0,              /* If a test fails on CI, retry it additional 2 times */
-  // timeout: 30 * 1000,                        /* Timeout per test */
-  // outputDir: 'test-results/',                /* Artifacts folder where screenshots, videos, and traces are stored. */
 
-  // webServer: {                               /* Run your local dev server before starting the tests: */
-  //   command: 'npm run start',                /* https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests */
-  //   port: 3000,
-  // },
+  testDir: './{{testDir}}',
 
-  use: {
-    trace: 'on-first-retry',                    /* Retry a test if its failing with enabled tracing (analyse the DOM, console logs, network traffic): https://playwright.dev/docs/trace-viewer */
-    // contextOptions: {                        /* All available context options: https://playwright.dev/docs/api/class-browser#browser-new-context */
-    //   ignoreHTTPSErrors: true,
-    // },
+  /* Maximum time one test can run for. */
+  timeout: 30 * 1000,
+
+  expect: {
+
+    /**
+     * Maximum time expect() should wait for the condition to be met.
+     * For example in `await expect(locator).toHaveText();`
+     */
+    timeout: 5000
   },
 
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
+
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 0,
+
+  /* Opt out of parallel tests on CI. */
+  workers: process.env.CI ? 1 : undefined,
+
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  reporter: 'html',
+
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  use: {
+
+    /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
+    actionTimeout: 0,
+
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    // baseURL: 'http://localhost:3000',
+
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
+  },
+
+  /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
+
+      /* Project-specific settings. */
       use: {
         ...devices['Desktop Chrome'],
       },
     },
+
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
       },
     },
+
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
       },
     },
+
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
@@ -53,7 +82,8 @@ const config: PlaywrightTestConfig = {
     //     ...devices['iPhone 12'],
     //   },
     // },
-    /* Test against stable browsers. */
+
+    /* Test against branded browsers. */
     // {
     //   name: 'Microsoft Edge',
     //   use: {
@@ -67,5 +97,14 @@ const config: PlaywrightTestConfig = {
     //   },
     // },
   ],
+
+  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
+  // outputDir: 'test-results/',
+
+  /* Run your local dev server before starting the tests */
+  // webServer: {
+  //   command: 'npm run start',
+  //   port: 3000,
+  // },
 };
 export default config;

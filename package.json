@@ -1,6 +1,6 @@
 {
   "name": "create-playwright",
-  "version": "1.17.100-next",
+  "version": "1.17.100",
   "description": "Getting started with writing end-to-end tests with Playwright.",
   "repository": "github:Microsoft/playwright",
   "homepage": "https://playwright.dev",
@@ -21,6 +21,7 @@
     "test": "npx playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.17.1",
     "@types/node": "^16.11.11",
     "@vercel/ncc": "^0.32.0",
     "ansi-colors": "^4.1.1",

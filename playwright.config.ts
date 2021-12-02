@@ -18,7 +18,7 @@ import path from 'path';
 
 const config: PlaywrightTestConfig = {
   timeout: 120 * 1000,
-  testDir: path.join(__dirname, 'tests'),
+  testDir: './tests',
 };
 
 export default config;

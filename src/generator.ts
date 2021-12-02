@@ -19,18 +19,16 @@ import fs from 'fs';
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
-import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languagetoFileExtension, readDirRecursively } from './utils';
+import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languagetoFileExtension } from './utils';
 
 export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
   language: 'JavaScript' | 'TypeScript'
-  addExamples: boolean,
   installPlaywrightDependencies: boolean,
 };
 
 const assetsDir = path.join(__dirname, '..', 'assets');
-const PACKAGE_JSON_TEST_SCRIPT_CMD = 'test:e2e';
 
 export class Generator {
   packageManager: 'npm' | 'yarn';
@@ -81,19 +79,13 @@ export class Generator {
         message: 'Add a GitHub Actions workflow?',
         initial: true,
       },
-      {
-        type: 'confirm',
-        name: 'addExamples',
-        message: 'Add common examples which demonstrate Playwright\'s capabilities?',
-        initial: true,
-      },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
       ...(process.platform === 'linux' ? [{
         type: 'confirm',
         name: 'installPlaywrightDependencies',
         message: 'Install Playwright operating system dependencies (requires sudo / root - can be done manually via \sudo npx playwright install-deps\')?',
-        initial: true,
+        initial: false,
       }] : []),
     ]);
   }
@@ -116,9 +108,6 @@ export class Generator {
     }
 
     files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
-
-    if (answers.addExamples)
-      await this._collectExamples(answers, files);
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
@@ -156,25 +145,12 @@ export class Generator {
     return fs.readFileSync(path.isAbsolute(asset) ? asset : path.join(assetsDir, asset), 'utf-8');
   }
 
-  private async _collectExamples(answers: PromptOptions, files: Map<string, string>) {
-    const outDir = answers.testDir + '-examples';
-    const examplesDir = path.join(assetsDir, 'examples');
-
-    for (const example of await readDirRecursively(examplesDir)) {
-      const relativePath = path.relative(examplesDir, example);
-      files.set(path.join(outDir, relativePath), this._readAsset(example));
-    }
-  }
-
   private async _patchPackageJSON(answers: PromptOptions) {
     const packageJSON = JSON.parse(fs.readFileSync(path.join(this.rootDir, 'package.json'), 'utf-8'));
     if (!packageJSON.scripts)
       packageJSON.scripts = {};
     if (packageJSON.scripts['test']?.includes('no test specified'))
       delete packageJSON.scripts['test'];
-    if (answers.addExamples)
-      packageJSON.scripts['test:e2e-examples'] = `playwright test --config ${path.join(answers.testDir + '-examples', 'playwright.config.ts')}`;
-    packageJSON.scripts[PACKAGE_JSON_TEST_SCRIPT_CMD] = `playwright test`;
 
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
@@ -216,7 +192,6 @@ Happy hacking! 🎭`);
 
 export function commandToRunTests(packageManager: 'npm' | 'yarn', args?: string) {
   if (packageManager === 'yarn')
-    return `yarn ${PACKAGE_JSON_TEST_SCRIPT_CMD}${args ? (' ' + args) : ''}`;
-  return `npm run ${PACKAGE_JSON_TEST_SCRIPT_CMD}${args ? (' -- ' + args) : ''}`;
+    return `yarn playwright test${args ? (' ' + args) : ''}`;
+  return `npx playwright test${args ? (' ' + args) : ''}`;
 }
-
