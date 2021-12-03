@@ -22,7 +22,7 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     test.use({ packageManager });
 
     test('should generate a project in the current directory', async ({ run }) => {
-      const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: true });
+      const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -46,7 +46,7 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     });
 
     test('should generate a project in a given directory', async ({ run }) => {
-      const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: true });
+      const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
@@ -59,7 +59,7 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     });
 
     test('should generate a project with JavaScript and without GHA', async ({ run }) => {
-      const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: true });
+      const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -72,21 +72,13 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     });
 
     test('should generate be able to run the examples successfully', async ({ run }) => {
-      const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: true });
+      const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
-
       expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
-      expect(fs.existsSync(path.join(dir, 'tests-examples/playwright.config.ts'))).toBeTruthy();
-      expect(fs.existsSync(path.join(dir, 'tests-examples/server/index.js'))).toBeTruthy();
-      expect(fs.existsSync(path.join(dir, 'tests-examples/1-getting-started.spec.ts'))).toBeTruthy();
 
-      let result;
-      if (packageManager === 'npm')
-        result = await exec('npm', ['run', 'test:e2e-examples']);
-      else
-        result = await exec('yarn', ['test:e2e-examples']);
+      const result = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
       expect(result.code).toBe(0);
     });
   });
