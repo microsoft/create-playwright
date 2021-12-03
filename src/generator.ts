@@ -167,7 +167,7 @@ export class Generator {
   ${colors.cyan(commandToRunTests(this.packageManager))}
     Runs the end-to-end tests.
 
-  ${colors.cyan(commandToRunTests(this.packageManager, '--project="Desktop Chrome"'))}
+  ${colors.cyan(commandToRunTests(this.packageManager, '--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
   ${colors.cyan(commandToRunTests(this.packageManager, exampleSpecPath))}
