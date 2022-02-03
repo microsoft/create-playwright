@@ -1,6 +1,12 @@
 // @ts-check
 const { devices } = require('@playwright/test');
-const path = require('path');
+
+/**
+ * Read environment variables from file.
+ * https://github.com/motdotla/dotenv
+ */
+// require('dotenv').config();
+
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -109,4 +115,5 @@ const config = {
   //   port: 3000,
   // },
 };
+
 module.exports = config;
