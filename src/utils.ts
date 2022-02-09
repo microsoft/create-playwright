@@ -63,13 +63,33 @@ export function determinePackageManager(rootDir: string): 'yarn' | 'npm' {
   return 'npm';
 }
 
-export function executeTemplate(input: string, args: Record<string, string>): string {
+export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
+  debugger;
   for (const key in args)
     input = input.replace(`{{${key}}}`, args[key]);
-  return input;
+  const result: string[] = [];
+  let mode: 'show' | 'hide' | 'comment' = 'show';
+  let indent = '';
+  for (const line of input.split('\n')) {
+    const match = line.match(/(s+)\/\/-begin-(.*)/);
+    if (match) {
+      mode = sections.get(match[2]) || 'comment';
+      indent = match[1];
+      continue;
+    }
+    if (line.trim().startsWith('//--end-')) {
+      mode = 'show';
+      continue;
+    }
+    if (mode === 'show')
+      result.push(line);
+    else if (mode === 'comment')
+      result.push(line.slice(0, indent.length) + '// ' + line.slice(indent.length));
+  }
+  return result.join('\n');
 }
 
-export function languagetoFileExtension(language: 'JavaScript' | 'TypeScript'): 'js' | 'ts' {
+export function languageToFileExtension(language: 'JavaScript' | 'TypeScript'): 'js' | 'ts' {
   return language === 'JavaScript' ? 'js' : 'ts';
 }
 

@@ -21,7 +21,7 @@
     "test": "npx playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.17.1",
+    "@playwright/test": "^1.18.1",
     "@types/node": "^16.11.11",
     "@vercel/ncc": "^0.32.0",
     "ansi-colors": "^4.1.1",

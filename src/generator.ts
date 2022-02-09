@@ -19,7 +19,7 @@ import fs from 'fs';
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
-import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languagetoFileExtension } from './utils';
+import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languageToFileExtension } from './utils';
 
 export type PromptOptions = {
   testDir: string,
@@ -39,17 +39,17 @@ export class Generator {
   }
 
   async run() {
-    this._printIntro();
+    this._printPrologue();
     const answers = await this._askQuestions();
     const { files, commands } = await this._identifyChanges(answers);
     executeCommands(this.rootDir, commands);
     await createFiles(this.rootDir, files);
     this._patchGitIgnore();
     await this._patchPackageJSON(answers);
-    this._printOutro(answers);
+    this._printEpilogue(answers);
   }
 
-  private _printIntro() {
+  private _printPrologue() {
     console.log(colors.yellow(`Getting started with writing ${colors.bold('end-to-end')} tests with ${colors.bold('Playwright')}:`));
     console.log(`Initializing project in '${path.relative(process.cwd(), this.rootDir) || '.'}'`);
   }
@@ -61,7 +61,7 @@ export class Generator {
       return {
         installGitHubActions: !!this.options.gha,
         language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
-        installPlaywrightDependencies: false,
+        installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
       };
     }
@@ -101,17 +101,21 @@ export class Generator {
   private async _identifyChanges(answers: PromptOptions) {
     const commands: Command[] = [];
     const files = new Map<string, string>();
-    const fileExtension = languagetoFileExtension(answers.language);
+    const fileExtension = languageToFileExtension(answers.language);
+
+    const sections = new Map<string, 'show' | 'hide' | 'comment'>();
+    for (const browserName of ['chromium', 'firefox', 'webkit'])
+      sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
       testDir: answers.testDir,
-    }));
+    }, sections));
 
     if (answers.installGitHubActions) {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
         installDepsCommand: this.packageManager === 'npm' ? 'npm ci' : 'yarn',
         runTestsCommand: commandToRunTests(this.packageManager),
-      });
+      }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
@@ -171,11 +175,11 @@ export class Generator {
     await createFiles(this.rootDir, files, true);
   }
 
-  private _printOutro(answers: PromptOptions) {
+  private _printEpilogue(answers: PromptOptions) {
     console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
-    const exampleSpecPath = `${answers.testDir}${path.sep}example.spec.${languagetoFileExtension(answers.language)}`;
+    const exampleSpecPath = `${answers.testDir}${path.sep}example.spec.${languageToFileExtension(answers.language)}`;
     console.log(`Inside that directory, you can run several commands:
 
   ${colors.cyan(commandToRunTests(this.packageManager))}
@@ -196,7 +200,7 @@ ${colors.cyan(prefix + '  ' + commandToRunTests(this.packageManager))}
 
 And check out the following files:
   - ./${pathToNavigate ? pathToNavigate + '/' : ''}${exampleSpecPath} - Example end-to-end test
-  - ./${pathToNavigate ? pathToNavigate + '/' : ''}playwright.config.${languagetoFileExtension(answers.language)} - Playwright Test configuration
+  - ./${pathToNavigate ? pathToNavigate + '/' : ''}playwright.config.${languageToFileExtension(answers.language)} - Playwright Test configuration
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
