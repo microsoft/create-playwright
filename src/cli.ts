@@ -20,9 +20,19 @@ import { Generator } from './generator';
 (async () => {
   const argv = process.argv.slice(2);
   const args = argv.filter(a => !a.startsWith('--'));
-  const options = argv.filter(a => a.startsWith('--'));
+  const options: { [key: string]: string[] } = {};
+  for (const token of argv.filter(a => a.startsWith('--'))) {
+    const [, name, value] = token.match(/--([^=]+)(?:=(.*))?/)!;
+    const oldValue = options[name];
+    if (oldValue)
+      oldValue.push(value);
+    else if (value)
+      options[name] = [value];
+    else
+      options[name] = [];
+  }
   const rootDir = path.resolve(process.cwd(), args[0] || '');
-  const generator = new Generator(rootDir, options.includes('--next'));
+  const generator = new Generator(rootDir, options);
   await generator.run();
 })().catch(error => {
   console.error(error);

@@ -32,7 +32,7 @@ const assetsDir = path.join(__dirname, '..', 'assets');
 
 export class Generator {
   packageManager: 'npm' | 'yarn';
-  constructor(private readonly rootDir: string, private readonly isNext: boolean) {
+  constructor(private readonly rootDir: string, private readonly options: { [key: string]: string[] }) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
     this.packageManager = determinePackageManager(this.rootDir);
@@ -54,9 +54,17 @@ export class Generator {
     console.log(`Initializing project in '${path.relative(process.cwd(), this.rootDir) || '.'}'`);
   }
 
-  private async _askQuestions() {
+  private async _askQuestions(): Promise<PromptOptions> {
     if (process.env.TEST_OPTIONS)
       return JSON.parse(process.env.TEST_OPTIONS);
+    if (this.options.quiet) {
+      return {
+        installGitHubActions: !!this.options.gha,
+        language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
+        installPlaywrightDependencies: false,
+        testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+      };
+    }
     return await prompt<PromptOptions>([
       {
         type: 'select',
@@ -116,15 +124,16 @@ export class Generator {
       });
     }
 
-    const packageName = this.isNext ? '@playwright/test@next' : '@playwright/test';
+    const packageName = this.options.next ? '@playwright/test@next' : '@playwright/test';
     commands.push({
       name: 'Installing Playwright Test',
       command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}` : `npm install --save-dev ${packageName}`,
     });
 
+    const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
     commands.push({
       name: 'Downloading browsers',
-      command: 'npx playwright install' + (answers.installPlaywrightDependencies ? ' --with-deps' : ''),
+      command: 'npx playwright install' + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
     });
 
     return { files, commands };
