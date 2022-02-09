@@ -18,8 +18,11 @@ import path from 'path';
 import { Generator } from './generator';
 
 (async () => {
-  const rootDir = path.resolve(process.cwd(), process.argv[2] || '');
-  const generator = new Generator(rootDir);
+  const argv = process.argv.slice(2);
+  const args = argv.filter(a => !a.startsWith('--'));
+  const options = argv.filter(a => a.startsWith('--'));
+  const rootDir = path.resolve(process.cwd(), args[0] || '');
+  const generator = new Generator(rootDir, options.includes('--next'));
   await generator.run();
 })().catch(error => {
   console.error(error);

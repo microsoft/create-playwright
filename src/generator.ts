@@ -32,7 +32,7 @@ const assetsDir = path.join(__dirname, '..', 'assets');
 
 export class Generator {
   packageManager: 'npm' | 'yarn';
-  constructor(private readonly rootDir: string) {
+  constructor(private readonly rootDir: string, private readonly isNext: boolean) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
     this.packageManager = determinePackageManager(this.rootDir);
@@ -116,9 +116,10 @@ export class Generator {
       });
     }
 
+    const packageName = this.isNext ? '@playwright/test@next' : '@playwright/test';
     commands.push({
       name: 'Installing Playwright Test',
-      command: this.packageManager === 'yarn' ? 'yarn add --dev @playwright/test' : 'npm install --save-dev @playwright/test',
+      command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}` : `npm install --save-dev ${packageName}`,
     });
 
     commands.push({
