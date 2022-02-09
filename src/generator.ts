@@ -124,7 +124,11 @@ export class Generator {
       });
     }
 
-    const packageName = this.options.next ? '@playwright/test@next' : '@playwright/test';
+    let packageName = '@playwright/test';
+    if (this.options.beta)
+      packageName = '@playwright/test@beta';
+    if (this.options.next)
+      packageName = '@playwright/test@next';
     commands.push({
       name: 'Installing Playwright Test',
       command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}` : `npm install --save-dev ${packageName}`,
