@@ -180,6 +180,7 @@ export class Generator {
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
     const exampleSpecPath = `${answers.testDir}${path.sep}example.spec.${languageToFileExtension(answers.language)}`;
+    const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
     console.log(`Inside that directory, you can run several commands:
 
   ${colors.cyan(commandToRunTests(this.packageManager))}
@@ -199,8 +200,8 @@ We suggest that you begin by typing:
 ${colors.cyan(prefix + '  ' + commandToRunTests(this.packageManager))}
 
 And check out the following files:
-  - ./${pathToNavigate ? pathToNavigate + '/' : ''}${exampleSpecPath} - Example end-to-end test
-  - ./${pathToNavigate ? pathToNavigate + '/' : ''}playwright.config.${languageToFileExtension(answers.language)} - Playwright Test configuration
+  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
+  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
