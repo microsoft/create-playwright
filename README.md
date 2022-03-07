@@ -6,7 +6,7 @@
 [![create-playwright CI](https://github.com/microsoft/create-playwright/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/create-playwright/actions/workflows/ci.yml)
 
 ```bash
-npm init playwright
+npm init playwright@latest
 # Or for Yarn
-yarn create playwright
+yarn create playwright@latest
 ```
