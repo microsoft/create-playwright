@@ -22,7 +22,10 @@ import { Generator } from './generator';
   const args = argv.filter(a => !a.startsWith('--'));
   const options: { [key: string]: string[] } = {};
   for (const token of argv.filter(a => a.startsWith('--'))) {
-    const [, name, value] = token.match(/--([^=]+)(?:=(.*))?/)!;
+    const match = token.match(/--([^=]+)(?:=(.*))?/);
+    if (!match)
+      continue;
+    const [, name, value] = match;
     const oldValue = options[name];
     if (oldValue)
       oldValue.push(value);
