@@ -1,6 +1,6 @@
 {
   "name": "create-playwright",
-  "version": "1.17.109",
+  "version": "1.17.110",
   "description": "Getting started with writing end-to-end tests with Playwright.",
   "repository": "github:Microsoft/playwright",
   "homepage": "https://playwright.dev",
