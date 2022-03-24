@@ -64,7 +64,6 @@ export function determinePackageManager(rootDir: string): 'yarn' | 'npm' {
 }
 
 export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
-  debugger;
   for (const key in args)
     input = input.replace(`{{${key}}}`, args[key]);
   const result: string[] = [];
