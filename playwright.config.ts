@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { PlaywrightTestConfig } from '@playwright/test';
-import path from 'path';
 
 const config: PlaywrightTestConfig = {
   timeout: 120 * 1000,
   testDir: './tests',
+  reporter: 'list',
 };
 
 export default config;
