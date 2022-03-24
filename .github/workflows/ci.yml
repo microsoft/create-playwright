@@ -19,7 +19,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm i -g npm@8
+    - name: Install latest Playwright OS dependencies
+      run: |
+        cd ..
+        mkdir tmp
+        cd tmp
+        npm init -y
+        npm install @playwright/test
+        npx playwright install-deps
     - run: npm ci
-    - run: npx playwright install-deps
     - run: npm run build
     - run: npm run test
