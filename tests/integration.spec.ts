@@ -72,25 +72,37 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     });
 
     test('should generate be able to run TS examples successfully', async ({ run }) => {
+      test.slow();
       const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 
-      const result = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
-      expect(result.code).toBe(0);
+      {
+        const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'install-deps']);
+        expect(code).toBe(0);
+      }
+
+      const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
+      expect(code).toBe(0);
     });
 
     test('should generate be able to run JS examples successfully', async ({ run }) => {
+      test.slow();
       const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
 
-      const result = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
-      expect(result.code).toBe(0);
+      {
+        const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'install-deps']);
+        expect(code).toBe(0);
+      }
+
+      const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
+      expect(code).toBe(0);
     });
   });
 }
