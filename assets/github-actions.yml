@@ -15,7 +15,7 @@ jobs:
         node-version: '14.x'
     - name: Install dependencies
       run: {{installDepsCommand}}
-    - name: Install Playwright
+    - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: {{runTestsCommand}}
