@@ -22,6 +22,7 @@ for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
     test.use({ packageManager });
 
     test('should generate a project in the current directory', async ({ run }) => {
+      test.slow();
       const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
       expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
