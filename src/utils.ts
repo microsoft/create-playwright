@@ -70,7 +70,7 @@ export function executeTemplate(input: string, args: Record<string, string>, sec
   let mode: 'show' | 'hide' | 'comment' = 'show';
   let indent = '';
   for (const line of input.split('\n')) {
-    const match = line.match(/([\s]+)\/\/--begin-(.*)/);
+    const match = line.match(/(\s*)\/\/--begin-(.*)/);
     if (match) {
       mode = sections.get(match[2]) || 'comment';
       indent = match[1];

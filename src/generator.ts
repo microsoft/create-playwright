@@ -24,7 +24,8 @@ import { executeCommands, createFiles, determinePackageManager, executeTemplate,
 export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
-  language: 'JavaScript' | 'TypeScript'
+  language: 'JavaScript' | 'TypeScript',
+  framework: 'react' | 'vue' | 'svelte' | undefined,
   installPlaywrightDependencies: boolean,
 };
 
@@ -63,10 +64,14 @@ export class Generator {
         language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        framework: undefined,
       };
     }
-    return await prompt<PromptOptions>([
-      {
+
+    const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
+
+    const questions = [
+      !isDefinitelyTS && {
         type: 'select',
         name: 'language',
         message: 'Do you want to use TypeScript or JavaScript?',
@@ -75,27 +80,41 @@ export class Generator {
           { name: 'JavaScript' },
         ],
       },
-      {
+      this.options.ct && {
+        type: 'select',
+        name: 'framework',
+        message: 'Which framework do you use? (experimental)',
+        choices: [
+          { name: 'react' },
+          { name: 'vue' },
+          { name: 'svelte' },
+        ],
+      },
+      !this.options.ct && {
         type: 'text',
         name: 'testDir',
         message: 'Where to put your end-to-end tests?',
         initial: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
       },
-      {
+      !this.options.ct && {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: true,
+        initial: false,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
-      ...(process.platform === 'linux' ? [{
+      process.platform === 'linux' && {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
         message: 'Install Playwright operating system dependencies (requires sudo / root - can be done manually via \sudo npx playwright install-deps\')?',
         initial: false,
-      }] : []),
-    ]);
+      },
+    ];
+    const result = await prompt<PromptOptions>(questions.filter(Boolean) as any);
+    if (isDefinitelyTS)
+      result.language = 'TypeScript';
+    return result;
   }
 
   private async _identifyChanges(answers: PromptOptions) {
@@ -107,8 +126,17 @@ export class Generator {
     for (const browserName of ['chromium', 'firefox', 'webkit'])
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
+    let installExamples = true;
+    let ctPackageName = '';
+    if (answers.framework) {
+      ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
+      sections.set('ct', 'show');
+      installExamples = false;
+    }
+
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
-      testDir: answers.testDir,
+      testDir: answers.testDir || '',
+      ctPackageName,
     }, sections));
 
     if (answers.installGitHubActions) {
@@ -119,7 +147,8 @@ export class Generator {
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
-    files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
+    if (installExamples)
+      files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
@@ -138,6 +167,25 @@ export class Generator {
       command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}` : `npm install --save-dev ${packageName}`,
     });
 
+    if (ctPackageName) {
+      commands.push({
+        name: 'Installing Playwright Component Testing',
+        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}@latest` : `npm install --save-dev ${ctPackageName}@latest`,
+      });
+
+      const extension = languageToFileExtension(answers.language);
+      const htmlTemplate = executeTemplate(this._readAsset(path.join('playwright', 'index.html')), { extension }, new Map());
+      files.set('playwright/index.html', htmlTemplate);
+
+      const jsTemplate = this._readAsset(path.join('playwright', 'index.js'));
+      files.set(`playwright/index.${extension}`, jsTemplate);
+
+      if (answers.language === 'TypeScript') {
+        files.set(`playwright/types.d.ts`, `import '${ctPackageName}';\n`);
+        this._patchTsconfigJSON();
+      }
+    }
+
     const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
     commands.push({
       name: 'Downloading browsers',
@@ -154,8 +202,9 @@ export class Generator {
       gitIgnore = fs.readFileSync(gitIgnorePath, 'utf-8').trimEnd() + '\n';
     if (!gitIgnore.includes('node_modules'))
       gitIgnore += 'node_modules/\n';
-    gitIgnore += 'test-results/\n';
-    gitIgnore += 'playwright-report/\n';
+    gitIgnore += '/test-results/\n';
+    gitIgnore += '/playwright-report/\n';
+    gitIgnore += '/dist-pw/\n';
     fs.writeFileSync(gitIgnorePath, gitIgnore);
   }
 
@@ -175,11 +224,25 @@ export class Generator {
     await createFiles(this.rootDir, files, true);
   }
 
+  private async _patchTsconfigJSON() {
+    const tsconfigFile = path.join(this.rootDir, 'tsconfig.json');
+    const files = new Map<string, string>();
+    if (!fs.existsSync(tsconfigFile)) {
+      files.set(`tsconfig.json`, this._readAsset(path.join('tsconfig.json')));
+    } else {
+      const tsconfigJSON = fs.readFileSync(path.join(this.rootDir, 'tsconfig.json'), 'utf-8');
+      const newJSON = tsconfigJSON.replace(/("include"[\s\S]*:[\s\S]\[[\s\S]*"src")/m, '$1, "playwright/types.d.ts"');
+      if (!tsconfigJSON.includes('playwright') && tsconfigJSON !== newJSON)
+        files.set('tsconfig.json', newJSON);
+    }
+    await createFiles(this.rootDir, files, true);
+  }
+
   private _printEpilogue(answers: PromptOptions) {
     console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
-    const exampleSpecPath = `${answers.testDir}${path.sep}example.spec.${languageToFileExtension(answers.language)}`;
+    const exampleSpecPath = `example.spec.${languageToFileExtension(answers.language)}`;
     const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
     console.log(`Inside that directory, you can run several commands:
 
