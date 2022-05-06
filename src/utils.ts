@@ -65,7 +65,7 @@ export function determinePackageManager(rootDir: string): 'yarn' | 'npm' {
 
 export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
   for (const key in args)
-    input = input.replace(`{{${key}}}`, args[key]);
+    input = input.replace(new RegExp('{{' + key + '}}', 'g'), args[key]);
   const result: string[] = [];
   let mode: 'show' | 'hide' | 'comment' = 'show';
   let indent = '';

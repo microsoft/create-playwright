@@ -130,15 +130,15 @@ export class Generator {
     let ctPackageName = '';
     if (answers.framework) {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
-      sections.set('ct', 'show');
       installExamples = false;
+      sections.set('ct', 'show');
     } else {
       sections.set('ct', 'hide');
     }
 
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
       testDir: answers.testDir || '',
-      ctPackageName,
+      testRunnerImport: ctPackageName || '@playwright/test',
     }, sections));
 
     if (answers.installGitHubActions) {
@@ -181,11 +181,6 @@ export class Generator {
 
       const jsTemplate = this._readAsset(path.join('playwright', 'index.js'));
       files.set(`playwright/index.${extension}`, jsTemplate);
-
-      if (answers.language === 'TypeScript') {
-        files.set(`playwright/types.d.ts`, `import '${ctPackageName}';\n`);
-        this._patchTsconfigJSON();
-      }
     }
 
     const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
@@ -223,20 +218,6 @@ export class Generator {
 
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
-    await createFiles(this.rootDir, files, true);
-  }
-
-  private async _patchTsconfigJSON() {
-    const tsconfigFile = path.join(this.rootDir, 'tsconfig.json');
-    const files = new Map<string, string>();
-    if (!fs.existsSync(tsconfigFile)) {
-      files.set(`tsconfig.json`, this._readAsset(path.join('tsconfig.json')));
-    } else {
-      const tsconfigJSON = fs.readFileSync(path.join(this.rootDir, 'tsconfig.json'), 'utf-8');
-      const newJSON = tsconfigJSON.replace(/("include"[\s\S]*:[\s\S]\[[\s\S]*"src")/m, '$1, "playwright/types.d.ts"');
-      if (!tsconfigJSON.includes('playwright') && tsconfigJSON !== newJSON)
-        files.set('tsconfig.json', newJSON);
-    }
     await createFiles(this.rootDir, files, true);
   }
 

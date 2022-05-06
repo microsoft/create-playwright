@@ -1,8 +1,5 @@
 // @ts-check
-const { devices } = require('@playwright/test');
-//--begin-ct
-const ct = require('{{ctPackageName}}');
-//--end-ct
+const { devices } = require('{{testRunnerImport}}');
 
 /**
  * Read environment variables from file.
@@ -34,10 +31,6 @@ const config = {
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
-  //--begin-ct
-  /* Enable component testing */
-  plugins: [ ct() ],
-  //--end-ct
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
@@ -47,6 +40,11 @@ const config = {
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    //--begin-ct
+
+    /* Port to use for Playwright component endpoint. */
+    vitePort: 3100,
+    //--end-ct
   },
 
   /* Configure projects for major browsers */
