@@ -1,5 +1,8 @@
 // @ts-check
 const { devices } = require('@playwright/test');
+//--begin-ct
+const ct = require('{{ctPackageName}}');
+//--end-ct
 
 /**
  * Read environment variables from file.
@@ -31,6 +34,10 @@ const config = {
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  //--begin-ct
+  /* Enable component testing */
+  plugins: [ ct() ],
+  //--end-ct
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
