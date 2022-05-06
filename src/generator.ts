@@ -132,6 +132,8 @@ export class Generator {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
       sections.set('ct', 'show');
       installExamples = false;
+    } else {
+      sections.set('ct', 'hide');
     }
 
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
