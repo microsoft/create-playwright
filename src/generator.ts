@@ -47,7 +47,10 @@ export class Generator {
     await createFiles(this.rootDir, files);
     this._patchGitIgnore();
     await this._patchPackageJSON(answers);
-    this._printEpilogue(answers);
+    if (answers.framework)
+      this._printEpilogueCT(answers);
+    else
+      this._printEpilogue(answers);
   }
 
   private _printPrologue() {
@@ -126,20 +129,20 @@ export class Generator {
     for (const browserName of ['chromium', 'firefox', 'webkit'])
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
+    let ctPackageName;
     let installExamples = true;
-    let ctPackageName = '';
     if (answers.framework) {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
       installExamples = false;
-      sections.set('ct', 'show');
+      files.set(`playwright-ct.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright-ct.config.${fileExtension}`), {
+        testDir: answers.testDir || '',
+        ctPackageName,
+      }, sections));
     } else {
-      sections.set('ct', 'hide');
+      files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
+        testDir: answers.testDir || '',
+      }, sections));
     }
-
-    files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
-      testDir: answers.testDir || '',
-      testRunnerImport: ctPackageName || '@playwright/test',
-    }, sections));
 
     if (answers.installGitHubActions) {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
@@ -159,20 +162,24 @@ export class Generator {
       });
     }
 
-    let packageName = '@playwright/test';
+    let packageLine = '';
+    const packageName = '@playwright/test';
     if (this.options.beta)
-      packageName = '@playwright/test@beta';
+      packageLine = '@beta';
     if (this.options.next)
-      packageName = '@playwright/test@next';
-    commands.push({
-      name: 'Installing Playwright Test',
-      command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}` : `npm install --save-dev ${packageName}`,
-    });
+      packageLine = '@next';
 
-    if (ctPackageName) {
+    if (!this.options.ct) {
+      commands.push({
+        name: 'Installing Playwright Test',
+        command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}${packageLine}` : `npm install --save-dev ${packageName}${packageLine}`,
+      });
+    }
+
+    if (this.options.ct) {
       commands.push({
         name: 'Installing Playwright Component Testing',
-        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}@latest` : `npm install --save-dev ${ctPackageName}@latest`,
+        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}${packageLine}` : `npm install --save-dev ${ctPackageName}${packageLine}`,
       });
 
       const extension = languageToFileExtension(answers.language);
@@ -201,7 +208,7 @@ export class Generator {
       gitIgnore += 'node_modules/\n';
     gitIgnore += '/test-results/\n';
     gitIgnore += '/playwright-report/\n';
-    gitIgnore += '/dist-pw/\n';
+    gitIgnore += '/playwright/.cache/\n';
     fs.writeFileSync(gitIgnorePath, gitIgnore);
   }
 
@@ -216,6 +223,10 @@ export class Generator {
     if (packageJSON.scripts['test']?.includes('no test specified'))
       delete packageJSON.scripts['test'];
 
+    const extension = languageToFileExtension(answers.language);
+    if (answers.framework)
+      packageJSON.scripts['test-ct'] = `playwright test -c playwright-ct.config.${extension}`;
+
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
     await createFiles(this.rootDir, files, true);
@@ -227,7 +238,8 @@ export class Generator {
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
     const exampleSpecPath = `example.spec.${languageToFileExtension(answers.language)}`;
     const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
-    console.log(`Inside that directory, you can run several commands:
+    console.log(`
+Inside that directory, you can run several commands:
 
   ${colors.cyan(commandToRunTests(this.packageManager))}
     Runs the end-to-end tests.
@@ -236,18 +248,44 @@ export class Generator {
     Runs the tests only on Desktop Chrome.
 
   ${colors.cyan(commandToRunTests(this.packageManager, exampleSpecPath))}
-    Runs the tests of a specific file.
+    Runs the tests in the specific file.
 
   ${colors.cyan(`${commandToRunTests(this.packageManager, '--debug')}`)}
     Runs the tests in debug mode.
 
 We suggest that you begin by typing:
 
-${colors.cyan(prefix + '  ' + commandToRunTests(this.packageManager))}
+  ${colors.cyan(prefix + '  ' + commandToRunTests(this.packageManager))}
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
+
+Visit https://playwright.dev/docs/intro for more information. ✨
+
+Happy hacking! 🎭`);
+  }
+
+  private _printEpilogueCT(answers: PromptOptions) {
+    console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
+    console.log(`
+Inside that directory, you can run several commands:
+
+  ${colors.cyan(`${this.packageManager} run test-ct`)}
+    Runs the component tests.
+
+  ${colors.cyan(`${this.packageManager} run test-ct -- --project=chromium`)}
+    Runs the tests only on Desktop Chrome.
+
+  ${colors.cyan(`${this.packageManager} run test-ct App.test.ts`)}
+    Runs the tests in the specific file.
+
+  ${colors.cyan(`${this.packageManager} run test-ct -- --debug`)}
+    Runs the tests in debug mode.
+
+We suggest that you begin by typing:
+
+  ${colors.cyan(`${this.packageManager} run test-ct`)}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 

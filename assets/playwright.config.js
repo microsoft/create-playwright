@@ -1,5 +1,5 @@
 // @ts-check
-const { devices } = require('{{testRunnerImport}}');
+const { devices } = require('@playwright/test');
 
 /**
  * Read environment variables from file.
@@ -40,11 +40,6 @@ const config = {
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    //--begin-ct
-
-    /* Port to use for Playwright component endpoint. */
-    vitePort: 3100,
-    //--end-ct
   },
 
   /* Configure projects for major browsers */
