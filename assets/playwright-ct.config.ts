@@ -22,7 +22,7 @@ const config: PlaywrightTestConfig = {
     trace: 'on-first-retry',
 
     /* Port to use for Playwright component endpoint. */
-    vitePort: 3100,
+    ctPort: 3100,
   },
 
   /* Configure projects for major browsers */
