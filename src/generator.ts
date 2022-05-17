@@ -190,6 +190,11 @@ export class Generator {
       files.set(`playwright/index.${extension}`, jsTemplate);
     }
 
+    commands.push({
+      name: 'Installing Node.js types',
+      command: this.packageManager === 'yarn' ? `yarn add --dev @types/node` : `npm install --save-dev @types/node`,
+    });
+
     const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
     commands.push({
       name: 'Downloading browsers',
