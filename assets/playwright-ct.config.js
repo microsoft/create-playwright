@@ -7,6 +7,8 @@ const { devices } = require('{{ctPackageName}}');
  */
 const config = {
   testDir: './{{testDir}}',
+  /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
+  snapshotDir: './__snapshots__',
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -21,7 +23,7 @@ const config = {
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
- 
+
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
   },
