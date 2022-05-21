@@ -71,7 +71,7 @@ export class Generator {
       };
     }
 
-    const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
+    const isDefinitelyTS = this.options.ct || fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
 
     const questions = [
       !isDefinitelyTS && {
