@@ -152,8 +152,10 @@ export class Generator {
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
-    if (installExamples)
+    if (installExamples) {
       files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
+      files.set(path.join(answers.testDir, `demo-todo-app.spec.${fileExtension}`), this._readAsset(`demo-todo-app.spec.${fileExtension}`));
+    }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
