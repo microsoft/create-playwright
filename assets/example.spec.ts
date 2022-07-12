@@ -7,7 +7,7 @@ test('example test', async ({ page }) => {
   await expect(page).toHaveTitle(/Playwright/);
 
   // Expect an attribute "to be strictly equal" to the value.
-  await expect(page.locator('text=Get Started')).toHaveAttribute('href', '/docs/installation');
+  await expect(page.locator('text=Get Started')).toHaveAttribute('href', '/docs/intro');
 
   // Click the get started link
   await page.locator('text=Get Started').click();
