@@ -1,17 +1,21 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-test('example test', async ({ page }) => {
+test('homepage has Playwright in title and get started link linking to the intro page', async ({ page }) => {
   await page.goto('https://playwright.dev/');
 
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/Playwright/);
 
-  // Expect an attribute "to be strictly equal" to the value.
-  await expect(page.locator('text=Get Started')).toHaveAttribute('href', '/docs/intro');
+  // create a locator
+  const getStarted = page.locator('text=Get Started');
 
-  // Click the get started link
-  await page.locator('text=Get Started').click();
-  // Expect some text to be visible on the page.
-  await expect(page.locator('text=Installation')).toBeVisible();
+  // Expect an attribute "to be strictly equal" to the value.
+  await expect(getStarted).toHaveAttribute('href', '/docs/intro');
+
+  // Click the get started link.
+  await getStarted.click();
+  
+  // Expects the URL to contain intro.
+  await expect(page).toHaveURL(/.*intro/);
 });
