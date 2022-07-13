@@ -27,7 +27,6 @@ export type PromptOptions = {
   language: 'JavaScript' | 'TypeScript',
   framework?: 'react' | 'vue' | 'svelte',
   installPlaywrightDependencies: boolean,
-  packageManager: 'npm' | 'yarn' | 'pnpm',
 };
 
 const assetsDir = path.join(__dirname, '..', 'assets');
@@ -43,8 +42,6 @@ export class Generator {
   async run() {
     this._printPrologue();
     const answers = await this._askQuestions();
-    // update package manager if init command comes from 'npm' but want to use other package manager, like 'yarn' or 'pnpm'
-    this.packageManager = answers.packageManager;
     const { files, commands } = await this._identifyChanges(answers);
     executeCommands(this.rootDir, commands);
     await createFiles(this.rootDir, files);
@@ -71,7 +68,6 @@ export class Generator {
         installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
         framework: undefined,
-        packageManager: this.packageManager,
       };
     }
 
@@ -163,7 +159,7 @@ export class Generator {
       commands.push({
         name: `Initializing ${this.packageManager === 'yarn' ? 'Yarn' : this.packageManager === 'pnpm' ? 'PNPM' : 'NPM'} project`,
         command: this.packageManager === 'yarn' ? 'yarn init -y' :
-          this.packageManager === 'pnpm' ? `pnpm init -y`
+          this.packageManager === 'pnpm' ? `pnpm init`
             : 'npm init -y',
       });
     }
@@ -178,14 +174,14 @@ export class Generator {
     if (!this.options.ct) {
       commands.push({
         name: 'Installing Playwright Test',
-        command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}${packageLine}` : `npm install --save-dev ${packageName}${packageLine}`,
+        command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}${packageLine}` : this.packageManager === 'pnpm' ? `pnpm add --save-dev ${packageName}${packageLine}`: `npm install --save-dev ${packageName}${packageLine}`,
       });
     }
 
     if (this.options.ct) {
       commands.push({
         name: 'Installing Playwright Component Testing',
-        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}${packageLine}` : `npm install --save-dev ${ctPackageName}${packageLine}`,
+        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}${packageLine}` : this.packageManager === 'pnpm' ? `pnpm add --save-dev ${packageName}${packageLine}`: `npm install --save-dev ${ctPackageName}${packageLine}`,
       });
 
       const extension = languageToFileExtension(answers.language);
