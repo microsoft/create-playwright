@@ -55,12 +55,35 @@ export async function createFiles(rootDir: string, files: Map<string, string>, f
   }
 }
 
-export function determinePackageManager(rootDir: string): 'yarn' | 'npm' {
-  if (fs.existsSync(path.join(rootDir, 'yarn.lock')))
-    return 'yarn';
-  if (process.env.npm_config_user_agent)
-    return process.env.npm_config_user_agent.includes('yarn') ? 'yarn' : 'npm';
-  return 'npm';
+export function determinePackageManager(): 'yarn' | 'npm' | 'pnpm' {
+  // https://stackoverflow.com/a/69301988/6515842
+
+  // This environment variable is set by npm and yarn but pnpm seems less consistent
+    const agent = process.env.npm_config_user_agent;
+
+    if (!agent) {
+        // This environment variable is set on Linux but I'm not sure about other OSes.
+        const parent = process.env._;
+
+        if (!parent) {
+            // No luck, assume npm
+            return "npm";
+        }
+
+        if (parent.endsWith("pnpx") || parent.endsWith("pnpm")) return "pnpm";
+        if (parent.endsWith("yarn")) return "yarn";
+
+        // Assume npm for anything else
+        return "npm";
+    }
+
+    const [program] = agent.split("/");
+
+    if (program === "yarn") return "yarn";
+    if (program === "pnpm") return "pnpm";
+
+    // Assume npm
+    return "npm";
 }
 
 export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
