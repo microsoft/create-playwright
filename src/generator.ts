@@ -303,6 +303,6 @@ export function commandToRunTests(packageManager: 'npm' | 'yarn' | 'pnpm', args?
   if (packageManager === 'yarn')
     return `yarn playwright test${args ? (' ' + args) : ''}`;
   if (packageManager === 'pnpm')
-    return `pnpx run test${args ? (' ' + args) : ''}`;
+    return `pnpm dlx playwright test${args ? (' ' + args) : ''}`;
   return `npx playwright test${args ? (' ' + args) : ''}`;
 }
