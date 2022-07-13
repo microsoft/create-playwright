@@ -16,7 +16,7 @@
 import { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  timeout: 120 * 1000,
+  timeout: 720 * 1000,
   testDir: './tests',
   reporter: 'list',
 };
