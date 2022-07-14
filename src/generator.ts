@@ -239,7 +239,7 @@ export class Generator {
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
     const exampleSpecPath = path.join(answers.testDir, `example.spec.${languageToFileExtension(answers.language)}`);
-    const demoTodoAppSpecPath = `tests-examples/demo-todo-app.spec.${languageToFileExtension(answers.language)}`;
+    const demoTodoAppSpecPath = path.join('tests-examples', `demo-todo-app.spec.${languageToFileExtension(answers.language)}`);
     const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
     console.log(`
 Inside that directory, you can run several commands:
