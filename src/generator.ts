@@ -154,7 +154,7 @@ export class Generator {
 
     if (installExamples) {
       files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
-      files.set(path.join(`tests-examples/`, `demo-todo-app.spec.${fileExtension}`), this._readAsset(`demo-todo-app.spec.${fileExtension}`));
+      files.set(path.join('tests-examples', `demo-todo-app.spec.${fileExtension}`), this._readAsset(`demo-todo-app.spec.${fileExtension}`));
     }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
