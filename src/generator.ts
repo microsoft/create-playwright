@@ -152,8 +152,10 @@ export class Generator {
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
-    if (installExamples)
+    if (installExamples) {
       files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
+      files.set(path.join('tests-examples', `demo-todo-app.spec.${fileExtension}`), this._readAsset(`demo-todo-app.spec.${fileExtension}`));
+    }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
@@ -236,7 +238,8 @@ export class Generator {
     console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
-    const exampleSpecPath = `example.spec.${languageToFileExtension(answers.language)}`;
+    const exampleSpecPath = path.join(answers.testDir, `example.spec.${languageToFileExtension(answers.language)}`);
+    const demoTodoAppSpecPath = path.join('tests-examples', `demo-todo-app.spec.${languageToFileExtension(answers.language)}`);
     const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
     console.log(`
 Inside that directory, you can run several commands:
@@ -247,11 +250,14 @@ Inside that directory, you can run several commands:
   ${colors.cyan(commandToRunTests(this.packageManager, '--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(commandToRunTests(this.packageManager, exampleSpecPath))}
-    Runs the tests in the specific file.
+  ${colors.cyan(commandToRunTests(this.packageManager, 'example'))}
+    Runs the tests in a specific file.
 
   ${colors.cyan(`${commandToRunTests(this.packageManager, '--debug')}`)}
     Runs the tests in debug mode.
+
+  ${colors.cyan(`${commandToRunCodegen(this.packageManager)}`)}
+    Auto generate tests with Codegen.
 
 We suggest that you begin by typing:
 
@@ -259,6 +265,7 @@ We suggest that you begin by typing:
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
+  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, demoTodoAppSpecPath) : demoTodoAppSpecPath} - Demo Todo App end-to-end tests
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
 
 Visit https://playwright.dev/docs/intro for more information. ✨
@@ -297,4 +304,10 @@ export function commandToRunTests(packageManager: 'npm' | 'yarn', args?: string)
   if (packageManager === 'yarn')
     return `yarn playwright test${args ? (' ' + args) : ''}`;
   return `npx playwright test${args ? (' ' + args) : ''}`;
+}
+
+export function commandToRunCodegen(packageManager: 'npm' | 'yarn') {
+  if (packageManager === 'yarn')
+    return `yarn playwright codegen`;
+  return `npx playwright codegen`;
 }
