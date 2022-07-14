@@ -9,4 +9,6 @@
 npm init playwright@latest
 # Or for Yarn
 yarn create playwright@latest
+# or for pnpm
+pnpm init playwright@latest
 ```

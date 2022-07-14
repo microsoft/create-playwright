@@ -21,7 +21,7 @@ import fs from 'fs';
 import { PromptOptions } from '../src/generator';
 
 type TestFixtures = {
-  packageManager: 'npm' | 'yarn';
+  packageManager: 'npm' | 'yarn' | 'pnpm';
   run: (parameters: string[], options: PromptOptions) => Promise<RunResult>,
 };
 
@@ -57,7 +57,9 @@ export const test = base.extend<TestFixtures>({
     await use(async (parameters: string[], options: PromptOptions): Promise<RunResult> => {
       fs.mkdirSync(testInfo.outputDir, { recursive: true });
       const env = packageManager === 'yarn' ? {
-        'npm_config_user_agent': 'yarn'
+        'npm_config_user_agent': 'yarn/0.0.0'
+      } : packageManager === 'pnpm' ? {
+        'npm_config_user_agent': 'pnpm/0.0.0'
       } : undefined;
       const result = await spawnAsync('node', [path.join(__dirname, '..'), ...parameters], {
         shell: true,
@@ -83,5 +85,6 @@ export const test = base.extend<TestFixtures>({
     });
   },
 });
+
 
 export const expect = test.expect;
