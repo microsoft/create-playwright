@@ -59,6 +59,8 @@ export const test = base.extend<TestFixtures>({
       fs.mkdirSync(testInfo.outputDir, { recursive: true });
       const env = packageManager === 'yarn' ? {
         'npm_config_user_agent': 'yarn'
+      } : packageManager === 'pnpm' ? {
+        'npm_config_user_agent': 'pnpm/0.0.0'
       } : undefined;
       const result = await spawnAsync('node', [path.join(__dirname, '..'), ...parameters], {
         shell: true,

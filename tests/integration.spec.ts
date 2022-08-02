@@ -46,7 +46,7 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
         expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
         expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
       } else if (packageManager === 'pnpm') {
-        expect(stdout).toContain('Initializing PNPM project (pnpm init)…');
+        expect(stdout).toContain('pnpm init'); // pnpm command outputs name in different case, hence we are not testing the whole string
         expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
       }
       expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
