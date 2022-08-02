@@ -148,7 +148,7 @@ export class Generator {
     if (answers.installGitHubActions) {
       const pmInstallCommand: Record<PackageManager, string> = {
         npm: 'npm ci',
-        pnpm: 'pnpm',
+        pnpm: 'pnpm install',
         yarn: 'yarn',
       }
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
@@ -171,7 +171,7 @@ export class Generator {
       }
       const pmOfficialName: Record<PackageManager, string> = {
         npm: 'NPM',
-        pnpm: 'pnpm',
+        pnpm: 'Pnpm',
         yarn: 'Yarn',
       }
       commands.push({
