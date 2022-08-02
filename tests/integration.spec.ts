@@ -30,8 +30,10 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
       if (packageManager === 'npm')
         expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
-      else
+      else if  (packageManager === 'yarn')
         expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
+      else if (packageManager === 'pnpm')
+        expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
       const playwrightConfigContent = fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8');
       expect(playwrightConfigContent).toContain('tests');
@@ -40,9 +42,12 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       if (packageManager === 'npm') {
         expect(stdout).toContain('Initializing NPM project (npm init -y)…');
         expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
-      } else {
+      } else if (packageManager === 'yarn') {
         expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
         expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
+      } else if (packageManager === 'pnpm') {
+        expect(stdout).toContain('Initializing PNPM project (pnpm init)…');
+        expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
       }
       expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
     });
@@ -54,8 +59,10 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
       if (packageManager === 'npm')
         expect(fs.existsSync(path.join(dir, 'foobar/package-lock.json'))).toBeTruthy();
-      else
+      else if (packageManager === 'yarn')
         expect(fs.existsSync(path.join(dir, 'foobar/yarn.lock'))).toBeTruthy();
+      else if (packageManager === 'pnpm')
+        expect(fs.existsSync(path.join(dir, 'foobar/pnpm-lock.yaml'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'foobar/playwright.config.ts'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'foobar/.github/workflows/playwright.yml'))).toBeTruthy();
     });
@@ -67,8 +74,10 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
       if (packageManager === 'npm')
         expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
-      else
+      else if (packageManager === 'yarn')
         expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
+      else if (packageManager === 'pnpm')
+        expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
       expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
     });
@@ -82,11 +91,11 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 
       {
-        const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'install-deps']);
+        const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'install-deps']);
         expect(code).toBe(0);
       }
 
-      const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
+      const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'test']);
       expect(code).toBe(0);
     });
 
@@ -99,11 +108,11 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
 
       {
-        const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'install-deps']);
+        const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'install-deps']);
         expect(code).toBe(0);
       }
 
-      const { code } = await exec(packageManager === 'npm' ? 'npx' : 'yarn', ['playwright', 'test']);
+      const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'test']);
       expect(code).toBe(0);
     });
   });
