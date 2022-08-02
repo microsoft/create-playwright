@@ -19,9 +19,10 @@ import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { PromptOptions } from '../src/generator';
+import { PackageManager } from '../src/types';
 
 type TestFixtures = {
-  packageManager: 'npm' | 'yarn';
+  packageManager: PackageManager;
   run: (parameters: string[], options: PromptOptions) => Promise<RunResult>,
 };
 

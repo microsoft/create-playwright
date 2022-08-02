@@ -16,8 +16,9 @@
 import { test, expect } from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
+import { PackageManager } from '../src/types';
 
-for (const packageManager of ['npm', 'yarn'] as ('npm' | 'yarn')[]) {
+for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
   test.describe(`Package manager: ${packageManager}`, () => {
     test.use({ packageManager });
 
