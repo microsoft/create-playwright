@@ -8,5 +8,5 @@
 ```bash
 npm init playwright@latest
 # Or for Yarn
-yarn create playwright@latest
+yarn create playwright
 ```
