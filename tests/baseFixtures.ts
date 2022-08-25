@@ -19,7 +19,8 @@ import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { PromptOptions } from '../src/generator';
-import { PackageManager } from '../src/types';
+
+export type PackageManager = 'npm' | 'pnpm' | 'yarn'
 
 type TestFixtures = {
   packageManager: PackageManager;

@@ -19,25 +19,23 @@ import fs from 'fs';
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
-import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languageToFileExtension } from './utils';
-import { PackageManager } from './types';
+import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension } from './utils';
+import { packageManager } from './packageManager';
 
 export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
   language: 'JavaScript' | 'TypeScript',
-  framework: 'react' | 'vue' | 'svelte' | undefined,
+  framework?: 'react' | 'vue' | 'svelte' | undefined,
   installPlaywrightDependencies: boolean,
 };
 
 const assetsDir = path.join(__dirname, '..', 'assets');
 
 export class Generator {
-  packageManager: PackageManager;
   constructor(private readonly rootDir: string, private readonly options: { [key: string]: string[] }) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
-    this.packageManager = determinePackageManager(this.rootDir);
   }
 
   async run() {
@@ -146,14 +144,9 @@ export class Generator {
     }
 
     if (answers.installGitHubActions) {
-      const pmInstallCommand: Record<PackageManager, string> = {
-        npm: 'npm ci',
-        pnpm: 'pnpm install',
-        yarn: 'yarn',
-      }
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
-        installDepsCommand: pmInstallCommand[this.packageManager],
-        runTestsCommand: commandToRunTests(this.packageManager),
+        installDepsCommand: packageManager.ci(),
+        runTestsCommand: packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
@@ -164,45 +157,29 @@ export class Generator {
     }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
-      const pmInitializeCommand: Record<PackageManager, string> = {
-        npm: 'npm init -y',
-        pnpm: 'pnpm init',
-        yarn: 'yarn init -y'
-      }
-      const pmOfficialName: Record<PackageManager, string> = {
-        npm: 'NPM',
-        pnpm: 'Pnpm',
-        yarn: 'Yarn',
-      }
       commands.push({
-        name: `Initializing ${pmOfficialName[this.packageManager]} project`,
-        command: pmInitializeCommand[this.packageManager],
+        name: `Initializing ${packageManager.name} project`,
+        command: packageManager.init(),
       });
     }
 
-    let packageLine = '';
-    const packageName = '@playwright/test';
+    let packageTag = '';
     if (this.options.beta)
-      packageLine = '@beta';
+      packageTag = '@beta';
     if (this.options.next)
-      packageLine = '@next';
+      packageTag = '@next';
 
-    const pmInstallDevDepCommand: Record<PackageManager, string> = {
-      npm: 'npm install --save-dev',
-      pnpm: 'pnpm add --save-dev',
-      yarn: 'yarn add --dev'
-    }
     if (!this.options.ct) {
       commands.push({
         name: 'Installing Playwright Test',
-        command: `${pmInstallDevDepCommand[this.packageManager]} ${packageName}${packageLine}`,
+        command: packageManager.installDevDependency(`@playwright/test${packageTag}`),
       });
     }
 
     if (this.options.ct) {
       commands.push({
         name: 'Installing Playwright Component Testing',
-        command: `${pmInstallDevDepCommand[this.packageManager]} ${ctPackageName}${packageLine}`,
+        command: packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
       });
 
       const extension = languageToFileExtension(answers.language);
@@ -265,24 +242,24 @@ export class Generator {
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(commandToRunTests(this.packageManager))}
+  ${colors.cyan(packageManager.runPlaywrightTest())}
     Runs the end-to-end tests.
 
-  ${colors.cyan(commandToRunTests(this.packageManager, '--project=chromium'))}
+  ${colors.cyan(packageManager.runPlaywrightTest('--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(commandToRunTests(this.packageManager, 'example'))}
+  ${colors.cyan(packageManager.runPlaywrightTest('example'))}
     Runs the tests in a specific file.
 
-  ${colors.cyan(`${commandToRunTests(this.packageManager, '--debug')}`)}
+  ${colors.cyan(packageManager.runPlaywrightTest('--debug'))}
     Runs the tests in debug mode.
 
-  ${colors.cyan(`${commandToRunCodegen(this.packageManager)}`)}
+  ${colors.cyan(packageManager.npx('playwright', 'codegen'))}
     Auto generate tests with Codegen.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(prefix + '  ' + commandToRunTests(this.packageManager))}
+  ${colors.cyan(prefix + '  ' + packageManager.runPlaywrightTest())}
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
@@ -299,40 +276,24 @@ Happy hacking! 🎭`);
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(`${this.packageManager} run test-ct`)}
+  ${colors.cyan(`${packageManager.cli} run test-ct`)}
     Runs the component tests.
 
-  ${colors.cyan(`${this.packageManager} run test-ct -- --project=chromium`)}
+  ${colors.cyan(`${packageManager.cli} run test-ct -- --project=chromium`)}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(`${this.packageManager} run test-ct App.test.ts`)}
+  ${colors.cyan(`${packageManager.cli} run test-ct App.test.ts`)}
     Runs the tests in the specific file.
 
-  ${colors.cyan(`${this.packageManager} run test-ct -- --debug`)}
+  ${colors.cyan(`${packageManager.cli} run test-ct -- --debug`)}
     Runs the tests in debug mode.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(`${this.packageManager} run test-ct`)}
+  ${colors.cyan(`${packageManager.cli} run test-ct`)}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
 Happy hacking! 🎭`);
   }
-}
-
-export function commandToRunTests(packageManager: PackageManager, args?: string) {
-  if (packageManager === 'pnpm')
-    return `pnpm playwright test${args ? (' ' + args) : ''}`;
-  if (packageManager === 'yarn')
-    return `yarn playwright test${args ? (' ' + args) : ''}`;
-  return `npx playwright test${args ? (' ' + args) : ''}`;
-}
-
-export function commandToRunCodegen(packageManager: PackageManager) {
-  if (packageManager === 'pnpm')
-    return `pnpm playwright codegen`;
-  if (packageManager === 'yarn')
-    return `yarn playwright codegen`;
-  return `npx playwright codegen`;
 }
