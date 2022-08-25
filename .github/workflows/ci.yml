@@ -25,4 +25,5 @@ jobs:
     - run: npm ci
     - run: npx playwright install-deps
     - run: npm run build
+    - run: npx tsc --noEmit
     - run: npm run test

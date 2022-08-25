@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect } from './baseFixtures';
+import { test, expect, PackageManager } from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
-import { PackageManager } from '../src/types';
 
 for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
   test.describe(`Package manager: ${packageManager}`, () => {
@@ -91,11 +90,11 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 
       {
-        const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'install-deps']);
+        const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
         expect(code).toBe(0);
       }
 
-      const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'test']);
+      const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
       expect(code).toBe(0);
     });
 
@@ -108,12 +107,23 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
 
       {
-        const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'install-deps']);
+        const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
         expect(code).toBe(0);
       }
 
-      const { code } = await exec(packageManager === 'npm' ? 'npx' : packageManager === 'pnpm' ? 'pnpm dlx' : 'yarn', ['playwright', 'test']);
+      const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
       expect(code).toBe(0);
     });
   });
+}
+
+function packageManagerToNpxCommand(packageManager: PackageManager): string {
+  switch (packageManager) {
+    case 'npm':
+      return 'npx';
+    case 'yarn':
+      return 'yarn';
+    case 'pnpm':
+      return 'pnpm dlx';
+  }
 }
