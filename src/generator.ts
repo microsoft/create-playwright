@@ -20,6 +20,7 @@ import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
 import { executeCommands, createFiles, determinePackageManager, executeTemplate, Command, languageToFileExtension } from './utils';
+import { PackageManager } from './types';
 
 export type PromptOptions = {
   testDir: string,
@@ -32,7 +33,7 @@ export type PromptOptions = {
 const assetsDir = path.join(__dirname, '..', 'assets');
 
 export class Generator {
-  packageManager: 'npm' | 'yarn';
+  packageManager: PackageManager;
   constructor(private readonly rootDir: string, private readonly options: { [key: string]: string[] }) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
@@ -145,8 +146,13 @@ export class Generator {
     }
 
     if (answers.installGitHubActions) {
+      const pmInstallCommand: Record<PackageManager, string> = {
+        npm: 'npm ci',
+        pnpm: 'pnpm install',
+        yarn: 'yarn',
+      }
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
-        installDepsCommand: this.packageManager === 'npm' ? 'npm ci' : 'yarn',
+        installDepsCommand: pmInstallCommand[this.packageManager],
         runTestsCommand: commandToRunTests(this.packageManager),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
@@ -158,9 +164,19 @@ export class Generator {
     }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
+      const pmInitializeCommand: Record<PackageManager, string> = {
+        npm: 'npm init -y',
+        pnpm: 'pnpm init',
+        yarn: 'yarn init -y'
+      }
+      const pmOfficialName: Record<PackageManager, string> = {
+        npm: 'NPM',
+        pnpm: 'Pnpm',
+        yarn: 'Yarn',
+      }
       commands.push({
-        name: `Initializing ${this.packageManager === 'yarn' ? 'Yarn' : 'NPM'} project`,
-        command: this.packageManager === 'yarn' ? 'yarn init -y' : 'npm init -y',
+        name: `Initializing ${pmOfficialName[this.packageManager]} project`,
+        command: pmInitializeCommand[this.packageManager],
       });
     }
 
@@ -171,17 +187,22 @@ export class Generator {
     if (this.options.next)
       packageLine = '@next';
 
+    const pmInstallDevDepCommand: Record<PackageManager, string> = {
+      npm: 'npm install --save-dev',
+      pnpm: 'pnpm add --save-dev',
+      yarn: 'yarn add --dev'
+    }
     if (!this.options.ct) {
       commands.push({
         name: 'Installing Playwright Test',
-        command: this.packageManager === 'yarn' ? `yarn add --dev ${packageName}${packageLine}` : `npm install --save-dev ${packageName}${packageLine}`,
+        command: `${pmInstallDevDepCommand[this.packageManager]} ${packageName}${packageLine}`,
       });
     }
 
     if (this.options.ct) {
       commands.push({
         name: 'Installing Playwright Component Testing',
-        command: this.packageManager === 'yarn' ? `yarn add --dev ${ctPackageName}${packageLine}` : `npm install --save-dev ${ctPackageName}${packageLine}`,
+        command: `${pmInstallDevDepCommand[this.packageManager]} ${ctPackageName}${packageLine}`,
       });
 
       const extension = languageToFileExtension(answers.language);
@@ -300,13 +321,17 @@ Happy hacking! 🎭`);
   }
 }
 
-export function commandToRunTests(packageManager: 'npm' | 'yarn', args?: string) {
+export function commandToRunTests(packageManager: PackageManager, args?: string) {
+  if (packageManager === 'pnpm')
+    return `pnpm playwright test${args ? (' ' + args) : ''}`;
   if (packageManager === 'yarn')
     return `yarn playwright test${args ? (' ' + args) : ''}`;
   return `npx playwright test${args ? (' ' + args) : ''}`;
 }
 
-export function commandToRunCodegen(packageManager: 'npm' | 'yarn') {
+export function commandToRunCodegen(packageManager: PackageManager) {
+  if (packageManager === 'pnpm')
+    return `pnpm playwright codegen`;
   if (packageManager === 'yarn')
     return `yarn playwright codegen`;
   return `npx playwright codegen`;

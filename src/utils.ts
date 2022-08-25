@@ -20,6 +20,7 @@ import path from 'path';
 
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
+import { PackageManager } from './types';
 
 export type Command = {
   command: string;
@@ -55,11 +56,18 @@ export async function createFiles(rootDir: string, files: Map<string, string>, f
   }
 }
 
-export function determinePackageManager(rootDir: string): 'yarn' | 'npm' {
+export function determinePackageManager(rootDir: string): PackageManager {
   if (fs.existsSync(path.join(rootDir, 'yarn.lock')))
     return 'yarn';
-  if (process.env.npm_config_user_agent)
-    return process.env.npm_config_user_agent.includes('yarn') ? 'yarn' : 'npm';
+  if (fs.existsSync(path.join(rootDir, 'pnpm-lock.yaml')))
+    return 'pnpm';
+  if (process.env.npm_config_user_agent) {
+    if (process.env.npm_config_user_agent.includes('yarn'))
+      return 'yarn'
+    if (process.env.npm_config_user_agent.includes('pnpm'))
+      return 'pnpm'
+    return 'npm';
+  }
   return 'npm';
 }
 
