@@ -115,7 +115,7 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       expect(code).toBe(0);
     });
 
-    test.only(`should run test with '${packageManager} run test' command`, async ({ run }) => {
+    test(`should run test with '${packageManager} run test' command`, async ({ run }) => {
       test.slow();
       const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
       expect(exitCode).toBe(0);
