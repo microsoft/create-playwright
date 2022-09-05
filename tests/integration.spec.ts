@@ -114,6 +114,23 @@ for (const packageManager of ['npm', 'pnpm', 'yarn'] as PackageManager[]) {
       const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
       expect(code).toBe(0);
     });
+
+    test.only(`should run test with '${packageManager} run test' command`, async ({ run }) => {
+      test.slow();
+      const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
+      expect(exitCode).toBe(0);
+      expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
+      expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
+      expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
+
+      {
+        const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
+        expect(code).toBe(0);
+      }
+
+      const { code } = await exec(packageManager, ['run', 'test']);
+      expect(code).toBe(0);
+    });
   });
 }
 

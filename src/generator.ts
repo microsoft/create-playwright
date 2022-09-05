@@ -218,10 +218,13 @@ export class Generator {
 
   private async _patchPackageJSON(answers: PromptOptions) {
     const packageJSON = JSON.parse(fs.readFileSync(path.join(this.rootDir, 'package.json'), 'utf-8'));
+    const playwrightTestCommand = 'npx playwright test';
     if (!packageJSON.scripts)
-      packageJSON.scripts = {};
+      packageJSON.scripts = {
+        'test': playwrightTestCommand,
+      };
     if (packageJSON.scripts['test']?.includes('no test specified'))
-      delete packageJSON.scripts['test'];
+      packageJSON.scripts['test'] = playwrightTestCommand;
 
     const extension = languageToFileExtension(answers.language);
     if (answers.framework)
