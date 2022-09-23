@@ -28,6 +28,7 @@ export type PromptOptions = {
   language: 'JavaScript' | 'TypeScript',
   framework?: 'react' | 'vue' | 'svelte' | undefined,
   installPlaywrightDependencies: boolean,
+  installPlaywrightBrowsers: boolean,
 };
 
 const assetsDir = path.join(__dirname, '..', 'assets');
@@ -67,6 +68,7 @@ export class Generator {
         installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
         framework: undefined,
+        installPlaywrightBrowsers: !this.options['no-browsers'],
       };
     }
 
@@ -104,12 +106,18 @@ export class Generator {
         message: 'Add a GitHub Actions workflow?',
         initial: false,
       },
+      {
+        type: 'confirm',
+        name: 'installPlaywrightBrowsers',
+        message: 'Install Playwright browsers (can be done manually via \'npx playwright install\')?',
+        initial: true,
+      },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
       process.platform === 'linux' && {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
-        message: 'Install Playwright operating system dependencies (requires sudo / root - can be done manually via \sudo npx playwright install-deps\')?',
+        message: 'Install Playwright operating system dependencies (requires sudo / root - can be done manually via \'sudo npx playwright install-deps\')?',
         initial: false,
       },
     ];
@@ -191,10 +199,12 @@ export class Generator {
     }
 
     const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
-    commands.push({
-      name: 'Downloading browsers',
-      command: 'npx playwright install' + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
-    });
+    if (answers.installPlaywrightBrowsers) {
+      commands.push({
+        name: 'Downloading browsers',
+        command: 'npx playwright install' + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
+      });
+    }
 
     return { files, commands };
   }
