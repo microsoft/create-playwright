@@ -22,7 +22,7 @@ import { PromptOptions } from '../src/generator';
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn'
 
-type TestFixtures = {
+export type TestFixtures = {
   packageManager: PackageManager;
   run: (parameters: string[], options: PromptOptions) => Promise<RunResult>,
 };
