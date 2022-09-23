@@ -19,7 +19,7 @@ import fs from 'fs';
 
 test('should generate a project in the current directory', async ({ run, packageManager }) => {
   test.slow();
-  const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
+  const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -48,7 +48,7 @@ test('should generate a project in the current directory', async ({ run, package
 });
 
 test('should generate a project in a given directory', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
+  const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
@@ -63,7 +63,7 @@ test('should generate a project in a given directory', async ({ run, packageMana
 });
 
 test('should generate a project with JavaScript and without GHA', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
+  const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -79,7 +79,7 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
 
 test('should generate be able to run TS examples successfully', async ({ run, packageManager }) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false });
+  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -96,7 +96,7 @@ test('should generate be able to run TS examples successfully', async ({ run, pa
 
 test('should generate be able to run JS examples successfully', async ({ run, packageManager }) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false });
+  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
