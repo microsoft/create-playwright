@@ -26,7 +26,7 @@ export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
   language: 'JavaScript' | 'TypeScript',
-  framework?: 'react' | 'vue' | 'svelte' | undefined,
+  framework?: 'react' | 'vue' | 'svelte' | 'solid' | undefined,
   installPlaywrightDependencies: boolean,
   installPlaywrightBrowsers: boolean,
 };
@@ -92,6 +92,7 @@ export class Generator {
           { name: 'react' },
           { name: 'vue' },
           { name: 'svelte' },
+          { name: 'solid' },
         ],
       },
       !this.options.ct && {
