@@ -318,7 +318,7 @@ test.describe('Routing', () => {
   test('should allow me to display active items', async ({ page }) => {
     await page.locator('.todo-list li .toggle').nth(1).check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
-    await page.locator('.filters').getByText('Active').click();
+    await page.getByRole('link', { name: 'Active' }).click();
     await expect(page.locator('.todo-list li')).toHaveCount(2);
     await expect(page.locator('.todo-list li')).toHaveText([TODO_ITEMS[0], TODO_ITEMS[2]]);
   });
