@@ -366,8 +366,7 @@ test.describe('Routing', () => {
     await expect(page.locator('.filters').getByText('All')).toHaveClass('selected');
     await page.locator('.filters').getByText('Active').click();
     // Page change - active items.
-    await expect(page.locator(".filters").getByText('Active')).
-    toHaveClass('selected');
+    await expect(page.locator(".filters").getByText('Active')).toHaveClass('selected');
     await page.locator('.filters').getByText('Completed').click();
     // Page change - completed items.
     await expect(page.locator('.filters').getByText('Completed')).toHaveClass('selected');
