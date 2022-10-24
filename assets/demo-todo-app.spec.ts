@@ -327,7 +327,7 @@ test.describe('Routing', () => {
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
     await test.step('Showing all items', async () => {
-      await page.locator('.filters').getByText('All').click();
+      await page.getByRole('link', { name: 'All' }).click();
       await expect(page.locator('.todo-list li')).toHaveCount(3);
     });
 
@@ -363,7 +363,7 @@ test.describe('Routing', () => {
   });
 
   test('should highlight the currently applied filter', async ({ page }) => {
-    await expect(page.locator('.filters').getByText('All')).toHaveClass('selected');
+    await expect(page.getByRole('link', { name: 'All' })).toHaveClass('selected');
     await page.getByRole('link', { name: 'Active' }).click();
     // Page change - active items.
     await expect(page.getByRole('link', { name: 'Active' })).
