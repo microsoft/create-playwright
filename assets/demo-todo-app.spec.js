@@ -268,7 +268,7 @@ test.describe('Counter', () => {
     await newTodo.fill(TODO_ITEMS[0]);
     await newTodo.press('Enter');
     await expect(page.locator('.todo-count')).toContainText('1');
-newTodo
+
     await newTodo.fill(TODO_ITEMS[1]);
     await newTodo.press('Enter');
     await expect(page.locator('.todo-count')).toContainText('2');
@@ -304,10 +304,10 @@ test.describe('Clear completed button', () => {
 
 test.describe('Persistence', () => {
   test('should persist its data', async ({ page }) => {
-    for (const item of TODO_ITEMS.slice(0, 2)) {
-      // create a new todo locator
-      const newTodo = page.getByPlaceholder('What needs to be done?');
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
+    for (const item of TODO_ITEMS.slice(0, 2)) {
       await newTodo.fill(item);
       await newTodo.press('Enter');
     }
@@ -397,10 +397,10 @@ test.describe('Routing', () => {
 });
 
 async function createDefaultTodos(page) {
-  for (const item of TODO_ITEMS) {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder('What needs to be done?');
-    
+  // create a new todo locator
+  const newTodo = page.getByPlaceholder('What needs to be done?');
+
+  for (const item of TODO_ITEMS)     
     await newTodo.fill(item);
     await newTodo.press('Enter');
   }
