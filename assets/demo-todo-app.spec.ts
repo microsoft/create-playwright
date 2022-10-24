@@ -12,9 +12,12 @@ const TODO_ITEMS = [
 
 test.describe('New Todo', () => {
   test('should allow me to add todo items', async ({ page }) => {
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder("What needs to be done?");
+
     // Create 1st todo.
-    await page.locator('.new-todo').fill(TODO_ITEMS[0]);
-    await page.locator('.new-todo').press('Enter');
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press("Enter");
 
     // Make sure the list only has one todo item.
     await expect(page.locator('.view label')).toHaveText([
@@ -22,8 +25,8 @@ test.describe('New Todo', () => {
     ]);
 
     // Create 2nd todo.
-    await page.locator('.new-todo').fill(TODO_ITEMS[1]);
-    await page.locator('.new-todo').press('Enter');
+    await newTodo.fill(TODO_ITEMS[1]);
+    await newTodo.press('Enter');
 
     // Make sure the list now has two todo items.
     await expect(page.locator('.view label')).toHaveText([
@@ -35,12 +38,15 @@ test.describe('New Todo', () => {
   });
 
   test('should clear text input field when an item is added', async ({ page }) => {
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder("What needs to be done?");
+
     // Create one todo item.
-    await page.locator('.new-todo').fill(TODO_ITEMS[0]);
-    await page.locator('.new-todo').press('Enter');
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press('Enter');
 
     // Check that input is empty.
-    await expect(page.locator('.new-todo')).toBeEmpty();
+    await expect(newTodo).toBeEmpty();
     await checkNumberOfTodosInLocalStorage(page, 1);
   });
 
@@ -59,8 +65,11 @@ test.describe('New Todo', () => {
   });
 
   test('should show #main and #footer when items added', async ({ page }) => {
-    await page.locator('.new-todo').fill(TODO_ITEMS[0]);
-    await page.locator('.new-todo').press('Enter');
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder("What needs to be done?");
+
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press('Enter');
 
     await expect(page.locator('.main')).toBeVisible();
     await expect(page.locator('.footer')).toBeVisible();
@@ -122,8 +131,11 @@ test.describe('Item', () => {
   test('should allow me to mark items as complete', async ({ page }) => {
     // Create two items.
     for (const item of TODO_ITEMS.slice(0, 2)) {
-      await page.locator('.new-todo').fill(item);
-      await page.locator('.new-todo').press('Enter');
+      // create a new todo locator
+      const newTodo = page.getByPlaceholder("What needs to be done?");
+
+      await newTodo.fill(item);
+      await newTodo.press('Enter');
     }
 
     // Check first item.
@@ -144,8 +156,11 @@ test.describe('Item', () => {
   test('should allow me to un-mark items as complete', async ({ page }) => {
     // Create two items.
     for (const item of TODO_ITEMS.slice(0, 2)) {
-      await page.locator('.new-todo').fill(item);
-      await page.locator('.new-todo').press('Enter');
+      // create a new todo locator
+      const newTodo = page.getByPlaceholder("What needs to be done?");
+
+      await newTodo.fill(item);
+      await newTodo.press('Enter');
     }
 
     const firstTodo = page.locator('.todo-list li').nth(0);
@@ -246,12 +261,15 @@ test.describe('Editing', () => {
 
 test.describe('Counter', () => {
   test('should display the current number of todo items', async ({ page }) => {
-    await page.locator('.new-todo').fill(TODO_ITEMS[0]);
-    await page.locator('.new-todo').press('Enter');
-    await expect(page.locator('.todo-count')).toContainText('1');
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder("What needs to be done?");
 
-    await page.locator('.new-todo').fill(TODO_ITEMS[1]);
-    await page.locator('.new-todo').press('Enter');
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press('Enter');
+    await expect(page.locator('.todo-count')).toContainText('1');
+newTodo
+    await newTodo.fill(TODO_ITEMS[1]);
+    await newTodo.press('Enter');
     await expect(page.locator('.todo-count')).toContainText('2');
 
     await checkNumberOfTodosInLocalStorage(page, 2);
@@ -286,8 +304,11 @@ test.describe('Clear completed button', () => {
 test.describe('Persistence', () => {
   test('should persist its data', async ({ page }) => {
     for (const item of TODO_ITEMS.slice(0, 2)) {
-      await page.locator('.new-todo').fill(item);
-      await page.locator('.new-todo').press('Enter');
+      // create a new todo locator
+      const newTodo = page.getByPlaceholder("What needs to be done?");
+
+      await newTodo.fill(item);
+      await newTodo.press('Enter');
     }
 
     const todoItems = page.locator('.todo-list li');
@@ -373,10 +394,13 @@ test.describe('Routing', () => {
   });
 });
 
-async function createDefaultTodos(page: Page) {
+async function createDefaultTodos(page) {
   for (const item of TODO_ITEMS) {
-    await page.locator('.new-todo').fill(item);
-    await page.locator('.new-todo').press('Enter');
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder("What needs to be done?");
+    
+    await newTodo.fill(item);
+    await newTodo.press('Enter');
   }
 }
 
