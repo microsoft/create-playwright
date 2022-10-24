@@ -13,11 +13,11 @@ const TODO_ITEMS = [
 test.describe('New Todo', () => {
   test('should allow me to add todo items', async ({ page }) => {
     // create a new todo locator
-    const newTodo = page.getByPlaceholder("What needs to be done?");
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
     // Create 1st todo.
     await newTodo.fill(TODO_ITEMS[0]);
-    await newTodo.press("Enter");
+    await newTodo.press('Enter');
 
     // Make sure the list only has one todo item.
     await expect(page.locator('.view label')).toHaveText([
@@ -39,7 +39,7 @@ test.describe('New Todo', () => {
 
   test('should clear text input field when an item is added', async ({ page }) => {
     // create a new todo locator
-    const newTodo = page.getByPlaceholder("What needs to be done?");
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
     // Create one todo item.
     await newTodo.fill(TODO_ITEMS[0]);
@@ -66,7 +66,7 @@ test.describe('New Todo', () => {
 
   test('should show #main and #footer when items added', async ({ page }) => {
     // create a new todo locator
-    const newTodo = page.getByPlaceholder("What needs to be done?");
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
     await newTodo.fill(TODO_ITEMS[0]);
     await newTodo.press('Enter');
@@ -132,7 +132,7 @@ test.describe('Item', () => {
     // Create two items.
     for (const item of TODO_ITEMS.slice(0, 2)) {
       // create a new todo locator
-      const newTodo = page.getByPlaceholder("What needs to be done?");
+      const newTodo = page.getByPlaceholder('What needs to be done?');
 
       await newTodo.fill(item);
       await newTodo.press('Enter');
@@ -157,7 +157,7 @@ test.describe('Item', () => {
     // Create two items.
     for (const item of TODO_ITEMS.slice(0, 2)) {
       // create a new todo locator
-      const newTodo = page.getByPlaceholder("What needs to be done?");
+      const newTodo = page.getByPlaceholder('What needs to be done?');
 
       await newTodo.fill(item);
       await newTodo.press('Enter');
@@ -262,12 +262,12 @@ test.describe('Editing', () => {
 test.describe('Counter', () => {
   test('should display the current number of todo items', async ({ page }) => {
     // create a new todo locator
-    const newTodo = page.getByPlaceholder("What needs to be done?");
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
     await newTodo.fill(TODO_ITEMS[0]);
     await newTodo.press('Enter');
     await expect(page.locator('.todo-count')).toContainText('1');
-newTodo
+
     await newTodo.fill(TODO_ITEMS[1]);
     await newTodo.press('Enter');
     await expect(page.locator('.todo-count')).toContainText('2');
@@ -303,10 +303,10 @@ test.describe('Clear completed button', () => {
 
 test.describe('Persistence', () => {
   test('should persist its data', async ({ page }) => {
-    for (const item of TODO_ITEMS.slice(0, 2)) {
-      // create a new todo locator
-      const newTodo = page.getByPlaceholder("What needs to be done?");
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
+    for (const item of TODO_ITEMS.slice(0, 2)) {
       await newTodo.fill(item);
       await newTodo.press('Enter');
     }
@@ -396,10 +396,10 @@ test.describe('Routing', () => {
 });
 
 async function createDefaultTodos(page) {
+  // create a new todo locator
+  const newTodo = page.getByPlaceholder('What needs to be done?');
+
   for (const item of TODO_ITEMS) {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder("What needs to be done?");
-    
     await newTodo.fill(item);
     await newTodo.press('Enter');
   }
