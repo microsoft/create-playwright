@@ -184,9 +184,9 @@ test.describe('Item', () => {
     const todoItems = page.locator('.todo-list li');
     const secondTodo = todoItems.nth(1);
     await secondTodo.dblclick();
-    await expect(secondTodo.getByRole("textbox", { name: "Edit" })).toHaveValue(TODO_ITEMS[1]);
-    await secondTodo.getByRole("textbox", { name: "Edit" }).fill('buy some sausages');
-    await secondTodo.getByRole("textbox", { name: "Edit" }).press('Enter');
+    await expect(secondTodo.getByRole('textbox', { name: 'Edit' })).toHaveValue(TODO_ITEMS[1]);
+    await secondTodo.getByRole('textbox', { name: 'Edit' }).fill('buy some sausages');
+    await secondTodo.getByRole('textbox', { name: 'Edit' }).press('Enter');
 
     // Explicitly assert the new text value.
     await expect(todoItems).toHaveText([
@@ -215,8 +215,8 @@ test.describe('Editing', () => {
   test('should save edits on blur', async ({ page }) => {
     const todoItems = page.locator('.todo-list li');
     await todoItems.nth(1).dblclick();
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).fill('buy some sausages');
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).dispatchEvent('blur');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).fill('buy some sausages');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).dispatchEvent('blur');
 
     await expect(todoItems).toHaveText([
       TODO_ITEMS[0],
@@ -229,8 +229,8 @@ test.describe('Editing', () => {
   test('should trim entered text', async ({ page }) => {
     const todoItems = page.locator('.todo-list li');
     await todoItems.nth(1).dblclick();
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).fill('    buy some sausages    ');
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).press('Enter');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).fill('    buy some sausages    ');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).press('Enter');
 
     await expect(todoItems).toHaveText([
       TODO_ITEMS[0],
@@ -243,8 +243,8 @@ test.describe('Editing', () => {
   test('should remove the item if an empty text string was entered', async ({ page }) => {
     const todoItems = page.locator('.todo-list li');
     await todoItems.nth(1).dblclick();
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).fill('');
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).press('Enter');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).fill('');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).press('Enter');
 
     await expect(todoItems).toHaveText([
       TODO_ITEMS[0],
@@ -255,8 +255,8 @@ test.describe('Editing', () => {
   test('should cancel edits on escape', async ({ page }) => {
     const todoItems = page.locator('.todo-list li');
     await todoItems.nth(1).dblclick();
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).fill('buy some sausages');
-    await todoItems.nth(1).getByRole("textbox", { name: "Edit" }).press('Escape');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).fill('buy some sausages');
+    await todoItems.nth(1).getByRole('textbox', { name: 'Edit' }).press('Escape');
     await expect(todoItems).toHaveText(TODO_ITEMS);
   });
 });
