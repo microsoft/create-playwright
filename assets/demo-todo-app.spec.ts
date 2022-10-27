@@ -55,6 +55,7 @@ test.describe('New Todo', () => {
     await createDefaultTodos(page);
 
     // Check test using different methods.
+    await expect(page.getByText('3 items left')).toBeVisible();
     await expect(page.locator('.todo-count')).toHaveText('3 items left');
     await expect(page.locator('.todo-count')).toContainText('3');
     await expect(page.locator('.todo-count')).toHaveText(/3/);

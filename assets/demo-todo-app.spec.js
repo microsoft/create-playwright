@@ -56,6 +56,7 @@ test.describe('New Todo', () => {
     await createDefaultTodos(page);
 
     // Check test using different methods.
+    await expect(page.getByText('3 items left')).toBeVisible();
     await expect(page.locator('.todo-count')).toHaveText('3 items left');
     await expect(page.locator('.todo-count')).toContainText('3');
     await expect(page.locator('.todo-count')).toHaveText(/3/);
@@ -401,7 +402,7 @@ async function createDefaultTodos(page) {
   // create a new todo locator
   const newTodo = page.getByPlaceholder('What needs to be done?');
 
-  for (const item of TODO_ITEMS)     
+  for (const item of TODO_ITEMS) {
     await newTodo.fill(item);
     await newTodo.press('Enter');
   }
