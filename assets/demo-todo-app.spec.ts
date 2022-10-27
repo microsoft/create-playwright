@@ -114,12 +114,12 @@ test.describe('Mark all as completed', () => {
 
     // Uncheck first todo.
     const firstTodo = page.getByTestId('todo-item').nth(0);
-    await firstTodo.locator('.toggle').uncheck();
+    await firstTodo.getByRole('checkbox').uncheck();
 
     // Reuse toggleAll locator and make sure its not checked.
     await expect(toggleAll).not.toBeChecked();
 
-    await firstTodo.locator('.toggle').check();
+    await firstTodo.getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 3);
 
     // Assert the toggle all is checked again.
@@ -141,13 +141,13 @@ test.describe('Item', () => {
 
     // Check first item.
     const firstTodo = page.getByTestId('todo-item').nth(0);
-    await firstTodo.locator('.toggle').check();
+    await firstTodo.getByRole('checkbox').check();
     await expect(firstTodo).toHaveClass('completed');
 
     // Check second item.
     const secondTodo = page.getByTestId('todo-item').nth(1);
     await expect(secondTodo).not.toHaveClass('completed');
-    await secondTodo.locator('.toggle').check();
+    await secondTodo.getByRole('checkbox').check();
 
     // Assert completed class.
     await expect(firstTodo).toHaveClass('completed');
@@ -166,12 +166,12 @@ test.describe('Item', () => {
 
     const firstTodo = page.getByTestId('todo-item').nth(0);
     const secondTodo = page.getByTestId('todo-item').nth(1);
-    await firstTodo.locator('.toggle').check();
+    await firstTodo.getByRole('checkbox').check();
     await expect(firstTodo).toHaveClass('completed');
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
-    await firstTodo.locator('.toggle').uncheck();
+    await firstTodo.getByRole('checkbox').uncheck();
     await expect(firstTodo).not.toHaveClass('completed');
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 0);
@@ -206,7 +206,7 @@ test.describe('Editing', () => {
   test('should hide other controls when editing', async ({ page }) => {
     const todoItem = page.getByTestId('todo-item').nth(1);
     await todoItem.dblclick();
-    await expect(todoItem.locator('.toggle')).not.toBeVisible();
+    await expect(todoItem.getByRole('checkbox')).not.toBeVisible();
     await expect(todoItem.locator('label')).not.toBeVisible();
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
@@ -289,7 +289,7 @@ test.describe('Clear completed button', () => {
 
   test('should remove completed items when clicked', async ({ page }) => {
     const todoItems = page.getByTestId('todo-item');
-    await todoItems.nth(1).locator('.toggle').check();
+    await todoItems.nth(1).getByRole('checkbox').check();
     await page.locator('.clear-completed').click();
     await expect(todoItems).toHaveCount(2);
     await expect(todoItems).toHaveText([TODO_ITEMS[0], TODO_ITEMS[2]]);
@@ -313,7 +313,7 @@ test.describe('Persistence', () => {
     }
 
     const todoItems = page.getByTestId('todo-item');
-    await todoItems.nth(0).locator('.toggle').check();
+    await todoItems.nth(0).getByRole('checkbox').check();
     await expect(todoItems).toHaveText([TODO_ITEMS[0], TODO_ITEMS[1]]);
     await expect(todoItems).toHaveClass(['completed', '']);
 
