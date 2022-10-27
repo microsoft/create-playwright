@@ -208,7 +208,7 @@ test.describe('Editing', () => {
     const todoItem = page.locator('.todo-list li').nth(1);
     await todoItem.dblclick();
     await expect(todoItem.locator('.toggle')).not.toBeVisible();
-    await expect(todoItem.locator('label')).not.toBeVisible();
+    await expect(todoItem.getByText(TODO_ITEMS[1])).not.toBeVisible();
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
 
