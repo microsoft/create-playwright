@@ -208,7 +208,9 @@ test.describe('Editing', () => {
     const todoItem = page.getByTestId('todo-item').nth(1);
     await todoItem.dblclick();
     await expect(todoItem.getByRole('checkbox')).not.toBeVisible();
-    await expect(todoItem.locator('label')).not.toBeVisible();
+    await expect(todoItem.locator('label', {
+      hasText: TODO_ITEMS[1],
+    })).not.toBeVisible();
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
 
