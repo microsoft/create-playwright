@@ -56,9 +56,9 @@ test.describe('New Todo', () => {
     await createDefaultTodos(page);
 
     // Check test using different methods.
-    await expect(page.locator('.todo-count')).toHaveText('3 items left');
-    await expect(page.locator('.todo-count')).toContainText('3');
-    await expect(page.locator('.todo-count')).toHaveText(/3/);
+    await expect(page.getByTestId('todo-count')).toHaveText('3 items left');
+    await expect(page.getByTestId('todo-count')).toContainText('3');
+    await expect(page.getByTestId('todo-count')).toHaveText(/3/);
 
     // Check all items in one call.
     await expect(page.locator('.view label')).toHaveText(TODO_ITEMS);
@@ -268,11 +268,11 @@ test.describe('Counter', () => {
 
     await newTodo.fill(TODO_ITEMS[0]);
     await newTodo.press('Enter');
-    await expect(page.locator('.todo-count')).toContainText('1');
+    await expect(page.getByTestId('todo-count')).toContainText('1');
 
     await newTodo.fill(TODO_ITEMS[1]);
     await newTodo.press('Enter');
-    await expect(page.locator('.todo-count')).toContainText('2');
+    await expect(page.getByTestId('todo-count')).toContainText('2');
 
     await checkNumberOfTodosInLocalStorage(page, 2);
   });
@@ -401,7 +401,7 @@ async function createDefaultTodos(page) {
   // create a new todo locator
   const newTodo = page.getByPlaceholder('What needs to be done?');
 
-  for (const item of TODO_ITEMS) { 
+  for (const item of TODO_ITEMS) {
     await newTodo.fill(item);
     await newTodo.press('Enter');
   }
