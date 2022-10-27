@@ -285,7 +285,7 @@ test.describe('Clear completed button', () => {
 
   test('should display the correct text', async ({ page }) => {
     await page.locator('.todo-list li .toggle').first().check();
-    await expect(page.getByRole('button', { name: 'Clear completed' })).toHaveText('Clear completed');
+    await expect(page.getByRole('button', { name: 'Clear completed' })).toBeVisible();
   });
 
   test('should remove completed items when clicked', async ({ page }) => {
