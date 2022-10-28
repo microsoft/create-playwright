@@ -390,13 +390,18 @@ test.describe('Routing', () => {
 
   test('should highlight the currently applied filter', async ({ page }) => {
     await expect(page.getByRole('link', { name: 'All' })).toHaveClass('selected');
-    await page.getByRole('link', { name: 'Active' }).click();
+
+    //create locators for active and completed links
+    const activeLink = page.getByRole('link', { name: 'Active' });
+    const completedLink = page.getByRole('link', { name: 'Completed' });
+    await activeLink.click();
+
     // Page change - active items.
-    await expect(page.getByRole('link', { name: 'Active' })).
-    toHaveClass('selected');
-    await page.getByRole('link', { name: 'Completed' }).click();
+    await expect(activeLink).toHaveClass('selected');
+    await completedLink.click();
+
     // Page change - completed items.
-    await expect(page.getByRole('link', { name: 'Completed' })).toHaveClass('selected');
+    await expect(completedLink).toHaveClass('selected');
   });
 });
 
