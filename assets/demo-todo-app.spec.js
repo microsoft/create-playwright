@@ -341,7 +341,7 @@ test.describe('Routing', () => {
   });
 
   test('should allow me to display active items', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Active' }).click();
     await expect(page.getByTestId('todo-item')).toHaveCount(2);
@@ -349,7 +349,7 @@ test.describe('Routing', () => {
   });
 
   test('should respect the back button', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
     await test.step('Showing all items', async () => {
@@ -373,14 +373,14 @@ test.describe('Routing', () => {
   });
 
   test('should allow me to display completed items', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Completed' }).click();
     await expect(page.getByTestId('todo-item')).toHaveCount(1);
   });
 
   test('should allow me to display all items', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Active' }).click();
     await page.getByRole('link', { name: 'Completed' }).click();
