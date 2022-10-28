@@ -20,7 +20,7 @@ test.describe('New Todo', () => {
     await newTodo.press('Enter');
 
     // Make sure the list only has one todo item.
-    await expect(page.locator('.view label')).toHaveText([
+    await expect(page.getByTestId('todo-title')).toHaveText([
       TODO_ITEMS[0]
     ]);
 
@@ -29,7 +29,7 @@ test.describe('New Todo', () => {
     await newTodo.press('Enter');
 
     // Make sure the list now has two todo items.
-    await expect(page.locator('.view label')).toHaveText([
+    await expect(page.getByTestId('todo-title')).toHaveText([
       TODO_ITEMS[0],
       TODO_ITEMS[1]
     ]);
@@ -61,7 +61,7 @@ test.describe('New Todo', () => {
     await expect(page.getByTestId('todo-count')).toHaveText(/3/);
 
     // Check all items in one call.
-    await expect(page.locator('.view label')).toHaveText(TODO_ITEMS);
+    await expect(page.getByTestId('todo-title')).toHaveText(TODO_ITEMS);
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
 
