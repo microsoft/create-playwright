@@ -168,20 +168,16 @@ test.describe('Item', () => {
 
     const firstTodo = page.getByTestId('todo-item').nth(0);
     const secondTodo = page.getByTestId('todo-item').nth(1);
-    const firstTodoCheck = firstTodo.getByRole('checkbox');
-    const secondTodoCheck = secondTodo.getByRole('checkbox');
+    const firstTodoCheckbox = firstTodo.getByRole('checkbox');
+    const secondTodoCheckbox = secondTodo.getByRole('checkbox');
 
-    await firstTodoCheck.check();
-    await expect(firstTodoCheck).toBeChecked();
+    await firstTodoCheckbox.check();
     await expect(firstTodo).toHaveClass('completed');
-    await expect(secondTodoCheck).not.toBeChecked();
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
-    await firstTodoCheck.uncheck();
-    await expect(firstTodoCheck).not.toBeChecked();
+    await firstTodoCheckbox.uncheck();
     await expect(firstTodo).not.toHaveClass('completed');
-    await expect(secondTodoCheck).not.toBeChecked();
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 0);
   });
