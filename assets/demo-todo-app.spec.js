@@ -21,7 +21,7 @@ test.describe('New Todo', () => {
     await newTodo.press('Enter');
 
     // Make sure the list only has one todo item.
-    await expect(page.locator('.view label')).toHaveText([
+    await expect(page.getByTestId('todo-title')).toHaveText([
       TODO_ITEMS[0]
     ]);
 
@@ -30,7 +30,7 @@ test.describe('New Todo', () => {
     await newTodo.press('Enter');
 
     // Make sure the list now has two todo items.
-    await expect(page.locator('.view label')).toHaveText([
+    await expect(page.getByTestId('todo-title')).toHaveText([
       TODO_ITEMS[0],
       TODO_ITEMS[1]
     ]);
@@ -62,7 +62,7 @@ test.describe('New Todo', () => {
     await expect(page.getByTestId('todo-count')).toHaveText(/3/);
 
     // Check all items in one call.
-    await expect(page.locator('.view label')).toHaveText(TODO_ITEMS);
+    await expect(page.getByTestId('todo-title')).toHaveText(TODO_ITEMS);
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
 
@@ -342,8 +342,8 @@ test.describe('Routing', () => {
 
   test('should allow me to display active items', async ({ page }) => {
     const todoItem = page.getByTestId('todo-item');
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     
-    await page.locator('.todo-list li .toggle').nth(1).check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Active' }).click();
     await expect(todoItem).toHaveCount(2);
@@ -352,8 +352,8 @@ test.describe('Routing', () => {
 
   test('should respect the back button', async ({ page }) => {
     const todoItem = page.getByTestId('todo-item');
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
 
-    await page.locator('.todo-list li .toggle').nth(1).check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
     await test.step('Showing all items', async () => {
@@ -377,14 +377,14 @@ test.describe('Routing', () => {
   });
 
   test('should allow me to display completed items', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Completed' }).click();
     await expect(page.getByTestId('todo-item')).toHaveCount(1);
   });
 
   test('should allow me to display all items', async ({ page }) => {
-    await page.locator('.todo-list li .toggle').nth(1).check();
+    await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Active' }).click();
     await page.getByRole('link', { name: 'Completed' }).click();
@@ -394,13 +394,18 @@ test.describe('Routing', () => {
 
   test('should highlight the currently applied filter', async ({ page }) => {
     await expect(page.getByRole('link', { name: 'All' })).toHaveClass('selected');
-    await page.getByRole('link', { name: 'Active' }).click();
+
+    //create locators for active and completed links
+    const activeLink = page.getByRole('link', { name: 'Active' });
+    const completedLink = page.getByRole('link', { name: 'Completed' });
+    await activeLink.click();
+
     // Page change - active items.
-    await expect(page.getByRole('link', { name: 'Active' })).
-    toHaveClass('selected');
-    await page.getByRole('link', { name: 'Completed' }).click();
+    await expect(activeLink).toHaveClass('selected');
+    await completedLink.click();
+
     // Page change - completed items.
-    await expect(page.getByRole('link', { name: 'Completed' })).toHaveClass('selected');
+    await expect(completedLink).toHaveClass('selected');
   });
 });
 
