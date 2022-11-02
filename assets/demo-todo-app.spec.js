@@ -169,7 +169,6 @@ test.describe('Item', () => {
     const firstTodo = page.getByTestId('todo-item').nth(0);
     const secondTodo = page.getByTestId('todo-item').nth(1);
     const firstTodoCheckbox = firstTodo.getByRole('checkbox');
-    const secondTodoCheckbox = secondTodo.getByRole('checkbox');
 
     await firstTodoCheckbox.check();
     await expect(firstTodo).toHaveClass('completed');
@@ -320,7 +319,7 @@ test.describe('Persistence', () => {
     }
 
     const todoItems = page.getByTestId('todo-item');
-    const firstTodoCheck = todoItems.nth(0).getByRole('checkbox')
+    const firstTodoCheck = todoItems.nth(0).getByRole('checkbox');
     await firstTodoCheck.check();
     await expect(todoItems).toHaveText([TODO_ITEMS[0], TODO_ITEMS[1]]);
     await expect(firstTodoCheck).toBeChecked();
