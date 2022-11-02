@@ -68,18 +68,6 @@ test.describe('New Todo', () => {
     await expect(page.getByTestId('todo-title')).toHaveText(TODO_ITEMS);
     await checkNumberOfTodosInLocalStorage(page, 3);
   });
-
-  test('should show #main and #footer when items added', async ({ page }) => {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder('What needs to be done?');
-
-    await newTodo.fill(TODO_ITEMS[0]);
-    await newTodo.press('Enter');
-
-    await expect(page.locator('.main')).toBeVisible();
-    await expect(page.locator('.footer')).toBeVisible();
-    await checkNumberOfTodosInLocalStorage(page, 1);
-  });
 });
 
 test.describe('Mark all as completed', () => {
