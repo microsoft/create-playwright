@@ -159,12 +159,14 @@ test.describe('Item', () => {
 
     const firstTodo = page.getByTestId('todo-item').nth(0);
     const secondTodo = page.getByTestId('todo-item').nth(1);
-    await firstTodo.getByRole('checkbox').check();
+    const firstTodoCheckbox = firstTodo.getByRole('checkbox');
+
+    await firstTodoCheckbox.check();
     await expect(firstTodo).toHaveClass('completed');
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
 
-    await firstTodo.getByRole('checkbox').uncheck();
+    await firstTodoCheckbox.uncheck();
     await expect(firstTodo).not.toHaveClass('completed');
     await expect(secondTodo).not.toHaveClass('completed');
     await checkNumberOfCompletedTodosInLocalStorage(page, 0);
@@ -311,8 +313,10 @@ test.describe('Persistence', () => {
     }
 
     const todoItems = page.getByTestId('todo-item');
-    await todoItems.nth(0).getByRole('checkbox').check();
+    const firstTodoCheck = todoItems.nth(0).getByRole('checkbox');
+    await firstTodoCheck.check();
     await expect(todoItems).toHaveText([TODO_ITEMS[0], TODO_ITEMS[1]]);
+    await expect(firstTodoCheck).toBeChecked();
     await expect(todoItems).toHaveClass(['completed', '']);
 
     // Ensure there is 1 completed item.
@@ -321,6 +325,7 @@ test.describe('Persistence', () => {
     // Now reload.
     await page.reload();
     await expect(todoItems).toHaveText([TODO_ITEMS[0], TODO_ITEMS[1]]);
+    await expect(firstTodoCheck).toBeChecked();
     await expect(todoItems).toHaveClass(['completed', '']);
   });
 });
