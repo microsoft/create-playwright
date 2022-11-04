@@ -25,6 +25,7 @@ import { packageManager } from './packageManager';
 export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
+  generatePomTest: boolean,
   language: 'JavaScript' | 'TypeScript',
   framework?: 'react' | 'vue' | 'svelte' | undefined,
   installPlaywrightDependencies: boolean,
@@ -64,6 +65,7 @@ export class Generator {
     if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
+        generatePomTest: !!this.options.gha,
         language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
@@ -105,6 +107,12 @@ export class Generator {
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
         initial: false,
+      },
+      !this.options.ct && {
+        type: 'confirm',
+        name: 'generatePomTest',
+        message: 'Do you want to generate Page-Object-Model test example?',
+        initial: false
       },
       {
         type: 'confirm',
@@ -157,6 +165,11 @@ export class Generator {
         runTestsCommand: packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
+    }
+
+    if (answers.generatePomTest) {
+      files.set(path.join('tests-examples-pom', `pom-example.spec.${fileExtension}`), this._readAsset(`pom-example.spec.${fileExtension}`));
+      files.set(path.join('tests-examples-pom', `playwright-dev-page.${fileExtension}`), this._readAsset(`playwright-dev-page.${fileExtension}`));
     }
 
     if (installExamples) {
