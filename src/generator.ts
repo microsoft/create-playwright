@@ -65,7 +65,7 @@ export class Generator {
     if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
-        generatePomTest: !!this.options.gha,
+        generatePomTest: !!this.options.pom,
         language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options['install-deps'],
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',

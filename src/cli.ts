@@ -57,6 +57,7 @@ function _printHelp() {
       --ct: install Playwright Component testing
       --quiet: do not ask for interactive input prompts
       --gha: install GitHub Actions
+      --pom: generate Page-Object-Model test example
       --lang=<js>: language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')
     `);
 }
