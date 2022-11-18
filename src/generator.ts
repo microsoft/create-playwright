@@ -109,7 +109,7 @@ export class Generator {
       {
         type: 'confirm',
         name: 'installPlaywrightBrowsers',
-        message: 'Install Playwright browsers (can be done manually via \'npx playwright install\')?',
+        message: `Install Playwright browsers (can be done manually via '${packageManager.npx('playwright', 'install')}')?`,
         initial: true,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
@@ -117,7 +117,7 @@ export class Generator {
       process.platform === 'linux' && {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
-        message: 'Install Playwright operating system dependencies (requires sudo / root - can be done manually via \'sudo npx playwright install-deps\')?',
+        message: `Install Playwright operating system dependencies (requires sudo / root - can be done manually via 'sudo ${packageManager.npx('playwright', 'install-deps')}')?`,
         initial: false,
       },
     ];
@@ -202,7 +202,7 @@ export class Generator {
     if (answers.installPlaywrightBrowsers) {
       commands.push({
         name: 'Downloading browsers',
-        command: 'npx playwright install' + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
+        command: packageManager.npx('playwright', 'install') + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
       });
     }
 
