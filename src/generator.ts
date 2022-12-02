@@ -155,6 +155,7 @@ export class Generator {
     if (answers.installGitHubActions) {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
         installDepsCommand: packageManager.ci(),
+        installPlaywrightCommand: packageManager.npx('playwright', 'install --with-deps'),
         runTestsCommand: packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
