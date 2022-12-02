@@ -54,21 +54,16 @@ function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutSt
 }
 
 export const test = base.extend<TestFixtures>({
-  packageManager: 'npm',
+  packageManager: ['npm', { option: true }],
   run: async ({ packageManager }, use, testInfo) => {
     await use(async (parameters: string[], options: PromptOptions): Promise<RunResult> => {
       fs.mkdirSync(testInfo.outputDir, { recursive: true });
-      const env = packageManager === 'yarn' ? {
-        'npm_config_user_agent': 'yarn'
-      } : packageManager === 'pnpm' ? {
-        'npm_config_user_agent': 'pnpm/0.0.0'
-      } : undefined;
       const result = await spawnAsync('node', [path.join(__dirname, '..'), ...parameters], {
         shell: true,
         cwd: testInfo.outputDir,
         env: {
           ...process.env,
-          ...env,
+          'npm_config_user_agent': packageManager === 'yarn' ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
           'TEST_OPTIONS': JSON.stringify(options),
         }
       });
