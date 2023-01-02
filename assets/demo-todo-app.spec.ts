@@ -408,7 +408,7 @@ test.describe('Routing', () => {
   });
 });
 
-async function createDefaultTodos(page) {
+async function createDefaultTodos(page: Page) {
   // create a new todo locator
   const newTodo = page.getByPlaceholder('What needs to be done?');
 
