@@ -67,7 +67,7 @@ class PNPM implements PackageManager {
   }
 
   npx(command: string, args: string): string {
-    return `pnpm dlx ${command} ${args}`
+    return `pnpm exec ${command} ${args}`
   }
 
   ci(): string {
