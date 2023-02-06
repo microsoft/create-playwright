@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlaywrightTestConfig } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 import type { TestFixtures } from './tests/baseFixtures';
 
-const config: PlaywrightTestConfig<TestFixtures> = {
+export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
   testDir: './tests',
   reporter: 'list',
   workers: process.env.CI ? 1 : undefined,
   projects: [
     {
-      name: 'NPM',
+      name: 'npm',
       use: {
         packageManager: 'npm'
       }
     },
     {
-      name: 'Yarn',
+      name: 'yarn',
       use: {
         packageManager: 'yarn'
       }
@@ -41,6 +41,4 @@ const config: PlaywrightTestConfig<TestFixtures> = {
       }
     },
   ]
-};
-
-export default config;
+});

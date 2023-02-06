@@ -1,5 +1,4 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Read environment variables from file.
@@ -10,7 +9,7 @@ import { devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-const config: PlaywrightTestConfig = {
+export default defineConfig({
   testDir: './{{testDir}}',
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
@@ -47,56 +46,42 @@ const config: PlaywrightTestConfig = {
     //--begin-chromium
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
     //--end-chromium
 
     //--begin-firefox
     {
       name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-      },
+      use: { ...devices['Desktop Firefox'] },
     },
     //--end-firefox
 
     //--begin-webkit
     {
       name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-      },
+      use: { ...devices['Desktop Safari'] },
     },
     //--end-webkit
 
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //   },
+    //   use: { ...devices['Pixel 5'] },
     // },
     // {
     //   name: 'Mobile Safari',
-    //   use: {
-    //     ...devices['iPhone 12'],
-    //   },
+    //   use: { ...devices['iPhone 12'] },
     // },
 
     /* Test against branded browsers. */
     // {
     //   name: 'Microsoft Edge',
-    //   use: {
-    //     channel: 'msedge',
-    //   },
+    //   use: { channel: 'msedge' },
     // },
     // {
     //   name: 'Google Chrome',
-    //   use: {
-    //     channel: 'chrome',
-    //   },
+    //   use: { channel: 'chrome' },
     // },
   ],
 
@@ -108,6 +93,4 @@ const config: PlaywrightTestConfig = {
   //   command: 'npm run start',
   //   port: 3000,
   // },
-};
-
-export default config;
+});
