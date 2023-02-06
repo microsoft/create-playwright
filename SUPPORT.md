@@ -6,7 +6,7 @@
 - **Yes CSS support:** Fill out an intake form at [aka.ms/spot](https://aka.ms/spot). CSS will work with/help you to determine next steps. More details also available at [aka.ms/onboardsupport](https://aka.ms/onboardsupport).
 - **Not sure?** Fill out a SPOT intake as though the answer were "Yes". CSS will help you decide.
 
-*Then remove this first heading from this SUPPORT.MD file before publishing your repo.*
+*Then reasdfmove this first heading from this SUPPORT.MD file before publishing your repo.*
 
 # Support
 
