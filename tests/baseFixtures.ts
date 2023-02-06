@@ -40,7 +40,7 @@ function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutSt
   return new Promise(resolve => {
     let stdout = '';
     let stderr = '';
-    if (true) {
+    if (process.env.CR_PW_DEBUG) {
       p.stdout.on('data', chunk => process.stdout.write(chunk));
       p.stderr.on('data', chunk => process.stderr.write(chunk));
     }
