@@ -19,7 +19,7 @@ import fs from 'fs';
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
-import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension } from './utils';
+import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension, getFileExtensionCT } from './utils';
 import { packageManager } from './packageManager';
 
 export type PromptOptions = {
@@ -192,7 +192,7 @@ export class Generator {
         command: packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
       });
 
-      const extension = languageToFileExtension(answers.language);
+      const extension = getFileExtensionCT(answers.language, answers.framework);
       const htmlTemplate = executeTemplate(this._readAsset(path.join('playwright', 'index.html')), { extension }, new Map());
       files.set('playwright/index.html', htmlTemplate);
 

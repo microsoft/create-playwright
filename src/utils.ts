@@ -20,6 +20,7 @@ import path from 'path';
 
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
+import { PromptOptions } from './generator';
 
 export type Command = {
   command: string;
@@ -80,7 +81,18 @@ export function executeTemplate(input: string, args: Record<string, string>, sec
   return result.join('\n');
 }
 
-export function languageToFileExtension(language: 'JavaScript' | 'TypeScript'): 'js' | 'ts' {
+export function getFileExtensionCT(language: PromptOptions['language'], framework: PromptOptions['framework']) {
+  const isJsxFramework = framework === 'solid' || framework === 'react';
+  if (isJsxFramework && language === 'JavaScript')
+    return 'jsx';
+  else if (isJsxFramework && language === 'TypeScript')
+    return 'tsx';
+  else if (language === 'TypeScript')
+    return 'ts';
+  return 'js';
+}
+
+export function languageToFileExtension(language: PromptOptions['language']): 'js' | 'ts' {
   return language === 'JavaScript' ? 'js' : 'ts';
 }
 
