@@ -33,8 +33,20 @@ export type PromptOptions = {
 
 const assetsDir = path.join(__dirname, '..', 'assets');
 
+type CliArgumentKey = 'browser'
+  | 'no-browsers'
+  | 'next'
+  | 'next'
+  | 'beta'
+  | 'ct'
+  | 'quiet'
+  | 'quiet'
+  | 'gha'
+  | 'install-deps'
+  | 'lang';
+
 export class Generator {
-  constructor(private readonly rootDir: string, private readonly options: { [key: string]: string[] }) {
+  constructor(private readonly rootDir: string, private readonly options: Partial<Record<CliArgumentKey, string[]>>) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
   }
@@ -156,7 +168,7 @@ export class Generator {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
         installDepsCommand: packageManager.ci(),
         installPlaywrightCommand: packageManager.npx('playwright', 'install --with-deps'),
-        runTestsCommand: packageManager.runPlaywrightTest(),
+        runTestsCommand: answers.framework ? packageManager.run('test-ct') : packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }

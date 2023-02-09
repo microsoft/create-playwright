@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect, PackageManager } from './baseFixtures';
+import { test, expect, PackageManager, assertLockFilesExist } from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
 
@@ -23,12 +23,7 @@ test('should generate a project in the current directory', async ({ run, package
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
-  if (packageManager === 'npm')
-    expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
-  else if (packageManager === 'yarn')
-    expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
-  else if (packageManager === 'pnpm')
-    expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+  assertLockFilesExist(dir, packageManager);
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
   const playwrightConfigContent = fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8');
   expect(playwrightConfigContent).toContain('tests');
@@ -52,12 +47,7 @@ test('should generate a project in a given directory', async ({ run, packageMana
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
-  if (packageManager === 'npm')
-    expect(fs.existsSync(path.join(dir, 'foobar/package-lock.json'))).toBeTruthy();
-  else if (packageManager === 'yarn')
-    expect(fs.existsSync(path.join(dir, 'foobar/yarn.lock'))).toBeTruthy();
-  else if (packageManager === 'pnpm')
-    expect(fs.existsSync(path.join(dir, 'foobar/pnpm-lock.yaml'))).toBeTruthy();
+  assertLockFilesExist(path.join(dir, 'foobar'), packageManager);
   expect(fs.existsSync(path.join(dir, 'foobar/playwright.config.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/.github/workflows/playwright.yml'))).toBeTruthy();
 });
@@ -67,12 +57,7 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
-  if (packageManager === 'npm')
-    expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
-  else if (packageManager === 'yarn')
-    expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
-  else if (packageManager === 'pnpm')
-    expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+  assertLockFilesExist(dir, packageManager);
   expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
 });

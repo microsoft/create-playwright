@@ -6,6 +6,7 @@ interface PackageManager {
   ci(): string
   installDevDependency(name: string): string
   runPlaywrightTest(args?: string): string
+  run(script: string): string
 }
 
 class NPM implements PackageManager {
@@ -30,6 +31,10 @@ class NPM implements PackageManager {
 
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
+  }
+
+  run(script: string): string {
+    return `npm run ${script}`;
   }
 }
 
@@ -56,6 +61,10 @@ class Yarn implements PackageManager {
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
   }
+  
+  run(script: string): string {
+    return `yarn ${script}`;
+  }
 }
 
 class PNPM implements PackageManager {
@@ -80,6 +89,10 @@ class PNPM implements PackageManager {
 
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
+  }
+
+  run(script: string): string {
+    return `pnpm run ${script}`;
   }
 }
 

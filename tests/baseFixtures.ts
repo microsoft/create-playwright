@@ -83,4 +83,14 @@ export const test = base.extend<TestFixtures>({
   },
 });
 
+export function assertLockFilesExist(dir: string, packageManager: PackageManager) {
+  expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
+  if (packageManager === 'npm')
+    expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
+  else if (packageManager === 'yarn')
+    expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
+  else if (packageManager === 'pnpm')
+    expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+}
+
 export const expect = test.expect;

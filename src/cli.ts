@@ -52,6 +52,7 @@ function _printHelp() {
       --help: print this message
       --browser=<name>: browsers to use in default config (default: 'chromium,firefox,webkit')
       --no-browsers: do not download browsers (can be done manually via 'npx playwright install')
+      --install-deps: install dependencies (default: false)
       --next: install @next version of Playwright
       --beta: install @beta version of Playwright
       --ct: install Playwright Component testing
