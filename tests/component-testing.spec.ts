@@ -33,7 +33,7 @@ test('should be able to generate and run a CT React project', async ({ run, pack
     expect(fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8')).toContain('test-ct');
   }
 
-  expect((await exec(packageManager, ['install', 'react', 'react-dom'])).code).toBe(0);
+  expect((await exec(packageManager, [(packageManager === 'yarn' ? 'add' : 'install'), 'react', 'react-dom'])).code).toBe(0);
 
   fs.mkdirSync(path.join(dir, 'src'));
   fs.writeFileSync(path.join(dir, 'src/App.tsx'), 'export default () => <>Learn React</>;');
