@@ -18,7 +18,6 @@ import path from 'path';
 import fs from 'fs';
 
 test('should be able to generate and run a CT React project', async ({ run, packageManager }) => {
-  test.fixme(packageManager === 'pnpm', 'https://github.com/microsoft/playwright/issues/20639');
   test.slow();
   const { exitCode, dir, exec } = await run(['--ct'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true, framework: 'react' });
   expect(exitCode).toBe(0);
