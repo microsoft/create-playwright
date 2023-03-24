@@ -269,6 +269,9 @@ Inside that directory, you can run several commands:
   ${colors.cyan(packageManager.runPlaywrightTest())}
     Runs the end-to-end tests.
 
+  ${colors.cyan(packageManager.runPlaywrightTest('--ui'))}
+    Starts the interactive UI mode.
+
   ${colors.cyan(packageManager.runPlaywrightTest('--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
