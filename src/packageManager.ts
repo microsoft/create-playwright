@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 interface PackageManager {
   cli: string;
   name: string
@@ -61,7 +64,7 @@ class Yarn implements PackageManager {
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
   }
-  
+
   run(script: string): string {
     return `yarn ${script}`;
   }
@@ -96,12 +99,22 @@ class PNPM implements PackageManager {
   }
 }
 
+class PNPMWITHWORKSPACE extends PNPM {
+  override installDevDependency(name: string): string {
+    return `pnpm add --save-dev -w ${name}`
+  }
+}
+
 function determinePackageManager(): PackageManager {
   if (process.env.npm_config_user_agent) {
     if (process.env.npm_config_user_agent.includes('yarn'))
       return new Yarn()
     if (process.env.npm_config_user_agent.includes('pnpm'))
-      return new PNPM()
+      if (fs.existsSync(path.join(process.cwd(), 'pnpm-workspace.yaml'))) {
+        return new PNPMWITHWORKSPACE()
+      } else {
+        return new PNPM()
+      }
     return new NPM()
   }
   return new NPM()
