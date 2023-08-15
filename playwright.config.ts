@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {defineConfig} from '@playwright/test';
-import type {TestFixtures} from './tests/baseFixtures';
+import { defineConfig } from '@playwright/test';
+import type { TestFixtures } from './tests/baseFixtures';
 
 export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
