@@ -25,20 +25,26 @@ export default defineConfig<TestFixtures>({
     {
       name: 'npm',
       use: {
-        packageManager: 'npm'
-      }
+        packageManager: 'npm',
+      },
     },
     {
       name: 'yarn',
       use: {
-        packageManager: 'yarn'
-      }
+        packageManager: 'yarn',
+      },
     },
     {
       name: 'pnpm',
       use: {
-        packageManager: 'pnpm'
-      }
+        packageManager: 'pnpm',
+      },
     },
-  ]
+    {
+      name: 'bun',
+      use: {
+        packageManager: 'bun',
+      },
+    },
+  ],
 });

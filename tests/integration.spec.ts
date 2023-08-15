@@ -13,86 +13,177 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect, PackageManager, assertLockFilesExist } from './baseFixtures';
+import {
+  test,
+  expect,
+  PackageManager,
+  assertLockFilesExist,
+} from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
 
-test('should generate a project in the current directory', async ({ run, packageManager }) => {
+test('should generate a project in the current directory', async ({
+  run,
+  packageManager,
+}) => {
   test.slow();
-  const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  const {exitCode, dir, stdout} = await run([], {
+    installGitHubActions: true,
+    testDir: 'tests',
+    language: 'TypeScript',
+    installPlaywrightDependencies: false,
+    installPlaywrightBrowsers: true,
+  });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   assertLockFilesExist(dir, packageManager);
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
-  const playwrightConfigContent = fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8');
+  const playwrightConfigContent = fs.readFileSync(
+    path.join(dir, 'playwright.config.ts'),
+    'utf8'
+  );
   expect(playwrightConfigContent).toContain('tests');
-  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+  expect(
+    fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))
+  ).toBeTruthy();
   expect(fs.existsSync(path.join(dir, '.gitignore'))).toBeTruthy();
   if (packageManager === 'npm') {
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
-    expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (npm install --save-dev @playwright/test)…'
+    );
   } else if (packageManager === 'yarn') {
     expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
-    expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (yarn add --dev @playwright/test)…'
+    );
   } else if (packageManager === 'pnpm') {
     expect(stdout).toContain('pnpm init'); // pnpm command outputs name in different case, hence we are not testing the whole string
-    expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (pnpm add --save-dev @playwright/test)…'
+    );
+  } else if (packageManager === 'bun') {
+    expect(stdout).toContain('bun init'); // pnpm command outputs name in different case, hence we are not testing the whole string
+    expect(stdout).toContain(
+      'Installing Playwright Test (bun add --dev @playwright/test)…'
+    );
   }
-  expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
+  expect(stdout).toContain(
+    'npx playwright install' + process.platform === 'linux'
+      ? ' --with-deps'
+      : ''
+  );
 });
 
-test('should generate a project in a given directory', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+test('should generate a project in a given directory', async ({
+  run,
+  packageManager,
+}) => {
+  const {exitCode, dir} = await run(['foobar'], {
+    installGitHubActions: true,
+    testDir: 'tests',
+    language: 'TypeScript',
+    installPlaywrightDependencies: false,
+    installPlaywrightBrowsers: true,
+  });
   expect(exitCode).toBe(0);
-  expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
+  expect(
+    fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))
+  ).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
   assertLockFilesExist(path.join(dir, 'foobar'), packageManager);
-  expect(fs.existsSync(path.join(dir, 'foobar/playwright.config.ts'))).toBeTruthy();
-  expect(fs.existsSync(path.join(dir, 'foobar/.github/workflows/playwright.yml'))).toBeTruthy();
+  expect(
+    fs.existsSync(path.join(dir, 'foobar/playwright.config.ts'))
+  ).toBeTruthy();
+  expect(
+    fs.existsSync(path.join(dir, 'foobar/.github/workflows/playwright.yml'))
+  ).toBeTruthy();
 });
 
-test('should generate a project with JavaScript and without GHA', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+test('should generate a project with JavaScript and without GHA', async ({
+  run,
+  packageManager,
+}) => {
+  const {exitCode, dir} = await run([], {
+    installGitHubActions: false,
+    testDir: 'tests',
+    language: 'JavaScript',
+    installPlaywrightDependencies: false,
+    installPlaywrightBrowsers: true,
+  });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   assertLockFilesExist(dir, packageManager);
   expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
-  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+  expect(
+    fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))
+  ).toBeFalsy();
 });
 
-test('should generate be able to run TS examples successfully', async ({ run, packageManager }) => {
+test('should generate be able to run TS examples successfully', async ({
+  run,
+  packageManager,
+}) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  const {exitCode, dir, exec} = await run([], {
+    installGitHubActions: false,
+    testDir: 'tests',
+    language: 'TypeScript',
+    installPlaywrightDependencies: false,
+    installPlaywrightBrowsers: true,
+  });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 
   {
-    const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
+    const {code} = await exec(packageManagerToNpxCommand(packageManager), [
+      'playwright',
+      'install-deps',
+    ]);
     expect(code).toBe(0);
   }
 
-  const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
+  const {code, stderr, stdout} = await exec(
+    packageManagerToNpxCommand(packageManager),
+    ['playwright', 'test']
+  );
+  console.log({stderr, stdout});
   expect(code).toBe(0);
 });
 
-test('should generate be able to run JS examples successfully', async ({ run, packageManager }) => {
+test('should generate be able to run JS examples successfully', async ({
+  run,
+  packageManager,
+}) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  const {exitCode, dir, exec} = await run([], {
+    installGitHubActions: false,
+    testDir: 'tests',
+    language: 'JavaScript',
+    installPlaywrightDependencies: false,
+    installPlaywrightBrowsers: true,
+  });
   expect(exitCode).toBe(0);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
 
   {
-    const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
+    const {code} = await exec(packageManagerToNpxCommand(packageManager), [
+      'playwright',
+      'install-deps',
+    ]);
     expect(code).toBe(0);
   }
 
-  const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
+  const {code} = await exec(packageManagerToNpxCommand(packageManager), [
+    'playwright',
+    'test',
+  ]);
   expect(code).toBe(0);
 });
 
@@ -104,5 +195,7 @@ function packageManagerToNpxCommand(packageManager: PackageManager): string {
       return 'yarn';
     case 'pnpm':
       return 'pnpm dlx';
+    case 'bun':
+      return 'bunx';
   }
 }
