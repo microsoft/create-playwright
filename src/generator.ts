@@ -252,7 +252,9 @@ export class Generator {
     const extension = languageToFileExtension(answers.language);
     if (answers.framework)
       packageJSON.scripts['test-ct'] = `playwright test -c playwright-ct.config.${extension}`;
-
+    // force commonjs because playwright.config.js uses `require`
+    if(answers.language === 'JavaScript')
+      delete packageJSON.type;
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
     await createFiles(this.rootDir, files, true);

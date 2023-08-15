@@ -22,6 +22,7 @@ jobs:
     - run: npm i -g npm@8
     - run: npm i -g yarn@1
     - run: npm i -g pnpm@7
+    - run: npm i -g bun
     - run: npm ci
     - run: npx playwright install-deps
     - run: npm run build

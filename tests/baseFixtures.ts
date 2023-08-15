@@ -20,7 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn'
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
 
 export type TestFixtures = {
   packageManager: PackageManager;
@@ -58,15 +58,26 @@ export const test = base.extend<TestFixtures>({
   run: async ({ packageManager }, use, testInfo) => {
     await use(async (parameters: string[], options: PromptOptions): Promise<RunResult> => {
       fs.mkdirSync(testInfo.outputDir, { recursive: true });
-      const result = await spawnAsync('node', [path.join(__dirname, '..'), ...parameters], {
-        shell: true,
-        cwd: testInfo.outputDir,
-        env: {
-          ...process.env,
-          'npm_config_user_agent': packageManager === 'yarn' ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
-          'TEST_OPTIONS': JSON.stringify(options),
+      const result = await spawnAsync(
+        'node',
+        [path.join(__dirname, '..'), ...parameters],
+        {
+          shell: true,
+          cwd: testInfo.outputDir,
+          env: {
+            ...process.env,
+            npm_config_user_agent:
+              packageManager === 'yarn'
+                ? 'yarn'
+                : packageManager === 'pnpm'
+                ? 'pnpm/0.0.0'
+                : packageManager === 'bun'
+                ? 'bun'
+                : undefined,
+            TEST_OPTIONS: JSON.stringify(options),
+          },
         }
-      });
+      );
       const execWrapper = (cmd: string, args: string[], options?: SpawnOptionsWithoutStdio): ReturnType<typeof spawnAsync> => {
         return spawnAsync(cmd, args, {
           ...options,
@@ -91,6 +102,8 @@ export function assertLockFilesExist(dir: string, packageManager: PackageManager
     expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
   else if (packageManager === 'pnpm')
     expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+  else if (packageManager === 'bun')
+    expect(fs.existsSync(path.join(dir, 'bun.lockb'))).toBeTruthy();
 }
 
 export const expect = test.expect;

@@ -31,13 +31,24 @@ test('should generate a project in the current directory', async ({ run, package
   expect(fs.existsSync(path.join(dir, '.gitignore'))).toBeTruthy();
   if (packageManager === 'npm') {
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
-    expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (npm install --save-dev @playwright/test)…'
+    );
   } else if (packageManager === 'yarn') {
     expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
-    expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (yarn add --dev @playwright/test)…'
+    );
   } else if (packageManager === 'pnpm') {
     expect(stdout).toContain('pnpm init'); // pnpm command outputs name in different case, hence we are not testing the whole string
-    expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
+    expect(stdout).toContain(
+      'Installing Playwright Test (pnpm add --save-dev @playwright/test)…'
+    );
+  } else if (packageManager === 'bun') {
+    expect(stdout).toContain('bun init'); // pnpm command outputs name in different case, hence we are not testing the whole string
+    expect(stdout).toContain(
+      'Installing Playwright Test (bun add --dev @playwright/test)…'
+    );
   }
   expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
 });
@@ -104,5 +115,7 @@ function packageManagerToNpxCommand(packageManager: PackageManager): string {
       return 'yarn';
     case 'pnpm':
       return 'pnpm dlx';
+    case 'bun':
+      return 'bunx';
   }
 }

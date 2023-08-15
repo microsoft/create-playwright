@@ -96,12 +96,43 @@ class PNPM implements PackageManager {
   }
 }
 
+class BunPM implements PackageManager {
+  name = 'bun';
+  cli = 'bun';
+
+  init(): string {
+    return 'bun init -y';
+  }
+
+  npx(command: string, args: string): string {
+    return `bunx ${command} ${args}`;
+  }
+
+  ci(): string {
+    return 'bun install';
+  }
+
+  installDevDependency(name: string): string {
+    return `bun add --dev ${name}`;
+  }
+
+  runPlaywrightTest(args: string): string {
+    return this.npx('playwright', `test${args ? ' ' + args : ''}`);
+  }
+
+  run(script: string): string {
+    return `bun run ${script}`;
+  }
+}
+
 function determinePackageManager(): PackageManager {
   if (process.env.npm_config_user_agent) {
     if (process.env.npm_config_user_agent.includes('yarn'))
       return new Yarn()
     if (process.env.npm_config_user_agent.includes('pnpm'))
       return new PNPM()
+    if (process.env.npm_config_user_agent.includes('bun')) 
+      return new BunPM()
     return new NPM()
   }
   return new NPM()

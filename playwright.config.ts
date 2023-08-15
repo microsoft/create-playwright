@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineConfig } from '@playwright/test';
-import type { TestFixtures } from './tests/baseFixtures';
+import {defineConfig} from '@playwright/test';
+import type {TestFixtures} from './tests/baseFixtures';
 
 export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
@@ -25,20 +25,26 @@ export default defineConfig<TestFixtures>({
     {
       name: 'npm',
       use: {
-        packageManager: 'npm'
-      }
+        packageManager: 'npm',
+      },
     },
     {
       name: 'yarn',
       use: {
-        packageManager: 'yarn'
-      }
+        packageManager: 'yarn',
+      },
     },
     {
       name: 'pnpm',
       use: {
-        packageManager: 'pnpm'
-      }
+        packageManager: 'pnpm',
+      },
     },
-  ]
+    {
+      name: 'bun',
+      use: {
+        packageManager: 'bun',
+      },
+    },
+  ],
 });
