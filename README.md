@@ -10,5 +10,5 @@ npm init playwright@latest
 # Or for Yarn
 yarn create playwright
 # Or for pnpm
-pnpm dlx create-playwright
+pnpm create playwright
 ```
