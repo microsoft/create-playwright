@@ -214,6 +214,13 @@ export class Generator {
       files.set(`playwright/index.${extension}`, jsTemplate);
     }
 
+    if (!this._hasDependency('@types/node')) {
+      commands.push({
+        name: 'Installing Types',
+        command: packageManager.installDevDependency(`@types/node`),
+      });
+    }
+
     const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
     if (answers.installPlaywrightBrowsers) {
       commands.push({
@@ -223,6 +230,15 @@ export class Generator {
     }
 
     return { files, commands };
+  }
+
+  private _hasDependency(pkg: string) {
+    try {
+      const packageJSON = JSON.parse(fs.readFileSync(path.join(this.rootDir, 'package.json'), 'utf-8'));
+      return packageJSON.dependencies?.[pkg] || packageJSON.devDependencies?.[pkg] || packageJSON.optionalDependencies?.[pkg];
+    } catch (e) {
+      return false;
+    }
   }
 
   private _patchGitIgnore() {

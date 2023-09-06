@@ -32,12 +32,15 @@ test('should generate a project in the current directory', async ({ run, package
   if (packageManager === 'npm') {
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
     expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
+    expect(stdout).toContain('Installing Types (npm install --save-dev @types/node)…');
   } else if (packageManager === 'yarn') {
     expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
     expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
+    expect(stdout).toContain('Installing Types (yarn add --dev @types/node)…');
   } else if (packageManager === 'pnpm') {
     expect(stdout).toContain('pnpm init'); // pnpm command outputs name in different case, hence we are not testing the whole string
     expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
+    expect(stdout).toContain('Installing Types (pnpm add --save-dev @types/node)…');
   }
   expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
 });
