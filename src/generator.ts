@@ -250,6 +250,7 @@ export class Generator {
       gitIgnore += 'node_modules/\n';
     gitIgnore += '/test-results/\n';
     gitIgnore += '/playwright-report/\n';
+    gitIgnore += '/blob-report/\n';
     gitIgnore += '/playwright/.cache/\n';
     fs.writeFileSync(gitIgnorePath, gitIgnore);
   }
