@@ -51,7 +51,7 @@ class Yarn implements PackageManager {
   }
 
   ci(): string {
-    return 'yarn'
+    return 'npm install -g yarn && yarn'
   }
 
   installDevDependency(name: string): string {
@@ -80,7 +80,7 @@ class PNPM implements PackageManager {
   }
 
   ci(): string {
-    return 'pnpm install'
+    return 'npm install -g pnpm && pnpm install'
   }
 
   installDevDependency(name: string): string {
