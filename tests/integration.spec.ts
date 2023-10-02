@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect, PackageManager, assertLockFilesExist } from './baseFixtures';
+import { test, expect, packageManagerToNpxCommand, assertLockFilesExist } from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
 
-test('should generate a project in the current directory', async ({ run, packageManager }) => {
+test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.slow();
-  const { exitCode, dir, stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
-  expect(exitCode).toBe(0);
+  const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   assertLockFilesExist(dir, packageManager);
@@ -45,9 +44,8 @@ test('should generate a project in the current directory', async ({ run, package
   expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
 });
 
-test('should generate a project in a given directory', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
-  expect(exitCode).toBe(0);
+test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
+  await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
   assertLockFilesExist(path.join(dir, 'foobar'), packageManager);
@@ -55,9 +53,8 @@ test('should generate a project in a given directory', async ({ run, packageMana
   expect(fs.existsSync(path.join(dir, 'foobar/.github/workflows/playwright.yml'))).toBeTruthy();
 });
 
-test('should generate a project with JavaScript and without GHA', async ({ run, packageManager }) => {
-  const { exitCode, dir } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
-  expect(exitCode).toBe(0);
+test('should generate a project with JavaScript and without GHA', async ({ run, dir, packageManager }) => {
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   assertLockFilesExist(dir, packageManager);
@@ -65,47 +62,25 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
 });
 
-test('should generate be able to run TS examples successfully', async ({ run, packageManager }) => {
+test('should generate be able to run TS examples successfully', async ({ run, dir, exec, packageManager }) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
-  expect(exitCode).toBe(0);
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 
-  {
-    const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
-    expect(code).toBe(0);
-  }
-
-  const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
-  expect(code).toBe(0);
+  await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
+  await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
-test('should generate be able to run JS examples successfully', async ({ run, packageManager }) => {
+test('should generate be able to run JS examples successfully', async ({ run, dir, exec, packageManager }) => {
   test.slow();
-  const { exitCode, dir, exec } = await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
-  expect(exitCode).toBe(0);
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
 
-  {
-    const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
-    expect(code).toBe(0);
-  }
-
-  const { code } = await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
-  expect(code).toBe(0);
+  await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
+  await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
-function packageManagerToNpxCommand(packageManager: PackageManager): string {
-  switch (packageManager) {
-    case 'npm':
-      return 'npx';
-    case 'yarn':
-      return 'yarn';
-    case 'pnpm':
-      return 'pnpm dlx';
-  }
-}
