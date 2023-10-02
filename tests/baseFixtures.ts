@@ -15,26 +15,23 @@
  */
 
 import { test as base } from '@playwright/test';
-import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
+import { spawn, type SpawnOptionsWithoutStdio } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import { PromptOptions } from '../src/generator';
+import type { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn'
+export type PackageManager = 'npm' | 'pnpm' | 'yarn';
 
 export type TestFixtures = {
   packageManager: PackageManager;
-  run: (parameters: string[], options: PromptOptions) => Promise<RunResult>,
+  dir: string;
+  run: (parameters: string[], options: PromptOptions) => Promise<SpawnResult>,
+  exec: typeof spawnAsync,
 };
 
-type RunResult = {
-  exitCode: number | null,
-  dir: string,
-  stdout: string,
-  exec: typeof spawnAsync
-};
+type SpawnResult = {stdout: string, stderr: string, code: number | null, error?: Error};
 
-function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio): Promise<{stdout: string, stderr: string, code: number | null, error?: Error}> {
+function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio): Promise<SpawnResult> {
   const p = spawn(cmd, args, options);
 
   return new Promise(resolve => {
@@ -55,30 +52,40 @@ function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutSt
 
 export const test = base.extend<TestFixtures>({
   packageManager: ['npm', { option: true }],
-  run: async ({ packageManager }, use, testInfo) => {
-    await use(async (parameters: string[], options: PromptOptions): Promise<RunResult> => {
-      fs.mkdirSync(testInfo.outputDir, { recursive: true });
-      const result = await spawnAsync('node', [path.join(__dirname, '..'), ...parameters], {
+  dir: async ({}, use, testInfo) => {
+    const dir = testInfo.outputDir;
+    fs.mkdirSync(dir, { recursive: true });
+    await use(dir);
+  },
+  exec: async ({ dir }, use, testInfo) => {
+    await use(async (cmd: string, args: string[], options?: SpawnOptionsWithoutStdio): ReturnType<typeof spawnAsync> => {
+      const result = await spawnAsync(cmd, args, {
+        cwd: dir,
+        ...options,
+      });
+      if (result.code !== 0) {
+        throw new Error([
+          `Failed to run "${cmd} ${args.join(' ')}"`,
+          `stdout:`,
+          result.stdout,
+          `stderr:`,
+          result.stderr,
+        ].join('\n'));
+      }
+      return result;
+    });
+  },
+  run: async ({ packageManager, exec, dir }, use) => {
+    await use(async (parameters: string[], options: PromptOptions): Promise<SpawnResult> => {
+      return await exec('node', [path.join(__dirname, '..'), ...parameters], {
         shell: true,
-        cwd: testInfo.outputDir,
+        cwd: dir,
         env: {
           ...process.env,
           'npm_config_user_agent': packageManager === 'yarn' ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
           'TEST_OPTIONS': JSON.stringify(options),
-        }
+        },
       });
-      const execWrapper = (cmd: string, args: string[], options?: SpawnOptionsWithoutStdio): ReturnType<typeof spawnAsync> => {
-        return spawnAsync(cmd, args, {
-          ...options,
-          cwd: testInfo.outputDir,
-        });
-      };
-      return {
-        exitCode: result.code,
-        dir: testInfo.outputDir,
-        stdout: result.stdout,
-        exec: execWrapper,
-      };
     });
   },
 });
@@ -91,6 +98,17 @@ export function assertLockFilesExist(dir: string, packageManager: PackageManager
     expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
   else if (packageManager === 'pnpm')
     expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+}
+
+export function packageManagerToNpxCommand(packageManager: PackageManager): string {
+  switch (packageManager) {
+    case 'npm':
+      return 'npx';
+    case 'yarn':
+      return 'yarn';
+    case 'pnpm':
+      return 'pnpm dlx';
+  }
 }
 
 export const expect = test.expect;
