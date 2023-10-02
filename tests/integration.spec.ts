@@ -16,6 +16,7 @@
 import { test, expect, packageManagerToNpxCommand, assertLockFilesExist } from './baseFixtures';
 import path from 'path';
 import fs from 'fs';
+import childProcess from 'child_process';
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.slow();
@@ -84,3 +85,19 @@ test('should generate be able to run JS examples successfully', async ({ run, di
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
+test('should generate in the root of pnpm workspace', async ({ run, packageManager }) => {
+  test.skip(packageManager !== 'pnpm');
+
+  const dir = test.info().outputDir;
+  fs.mkdirSync(dir, { recursive: true });
+  childProcess.execSync('pnpm init', { cwd: dir });
+  fs.writeFileSync(path.join(dir, 'pnpm-workspace.yaml'), `packages:\n  - 'packages/*'\n`);
+  fs.mkdirSync(path.join(dir, 'packages', 'foo'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'packages', 'foo', 'package.json'), `{}`);
+
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  assertLockFilesExist(dir, packageManager);
+  expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});

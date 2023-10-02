@@ -1,4 +1,7 @@
-interface PackageManager {
+import path from 'path';
+import fs from 'fs';
+
+export interface PackageManager {
   cli: string;
   name: string
   init(): string
@@ -61,7 +64,7 @@ class Yarn implements PackageManager {
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
   }
-  
+
   run(script: string): string {
     return `yarn ${script}`;
   }
@@ -70,6 +73,9 @@ class Yarn implements PackageManager {
 class PNPM implements PackageManager {
   name = 'pnpm'
   cli = 'pnpm'
+
+  constructor(private workspace: boolean) {
+  }
 
   init(): string {
     return 'pnpm init'
@@ -84,7 +90,7 @@ class PNPM implements PackageManager {
   }
 
   installDevDependency(name: string): string {
-    return `pnpm add --save-dev ${name}`
+    return `pnpm add --save-dev ${this.workspace ? '-w ' : ''}${name}`
   }
 
   runPlaywrightTest(args: string): string {
@@ -96,15 +102,13 @@ class PNPM implements PackageManager {
   }
 }
 
-function determinePackageManager(): PackageManager {
+export function determinePackageManager(rootDir: string): PackageManager {
   if (process.env.npm_config_user_agent) {
     if (process.env.npm_config_user_agent.includes('yarn'))
-      return new Yarn()
+      return new Yarn();
     if (process.env.npm_config_user_agent.includes('pnpm'))
-      return new PNPM()
-    return new NPM()
+      return new PNPM(fs.existsSync(path.resolve(rootDir, 'pnpm-workspace.yaml')));
+    return new NPM();
   }
-  return new NPM()
+  return new NPM();
 }
-
-export const packageManager = determinePackageManager();
