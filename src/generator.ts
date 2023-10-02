@@ -20,7 +20,7 @@ import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
 
 import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension, getFileExtensionCT } from './utils';
-import { packageManager } from './packageManager';
+import { type PackageManager, determinePackageManager } from './packageManager';
 
 export type PromptOptions = {
   testDir: string,
@@ -46,9 +46,12 @@ type CliArgumentKey = 'browser'
   | 'lang';
 
 export class Generator {
+  private packageManager: PackageManager;
+
   constructor(private readonly rootDir: string, private readonly options: Partial<Record<CliArgumentKey, string[]>>) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
+    this.packageManager = determinePackageManager(rootDir);
   }
 
   async run() {
@@ -124,7 +127,7 @@ export class Generator {
       {
         type: 'confirm',
         name: 'installPlaywrightBrowsers',
-        message: `Install Playwright browsers (can be done manually via '${packageManager.npx('playwright', 'install')}')?`,
+        message: `Install Playwright browsers (can be done manually via '${this.packageManager.npx('playwright', 'install')}')?`,
         initial: true,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
@@ -132,7 +135,7 @@ export class Generator {
       process.platform === 'linux' && {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
-        message: `Install Playwright operating system dependencies (requires sudo / root - can be done manually via 'sudo ${packageManager.npx('playwright', 'install-deps')}')?`,
+        message: `Install Playwright operating system dependencies (requires sudo / root - can be done manually via 'sudo ${this.packageManager.npx('playwright', 'install-deps')}')?`,
         initial: false,
       },
     ];
@@ -168,9 +171,9 @@ export class Generator {
 
     if (answers.installGitHubActions) {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
-        installDepsCommand: packageManager.ci(),
-        installPlaywrightCommand: packageManager.npx('playwright', 'install --with-deps'),
-        runTestsCommand: answers.framework ? packageManager.run('test-ct') : packageManager.runPlaywrightTest(),
+        installDepsCommand: this.packageManager.ci(),
+        installPlaywrightCommand: this.packageManager.npx('playwright', 'install --with-deps'),
+        runTestsCommand: answers.framework ? this.packageManager.run('test-ct') : this.packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
@@ -182,8 +185,8 @@ export class Generator {
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
-        name: `Initializing ${packageManager.name} project`,
-        command: packageManager.init(),
+        name: `Initializing ${this.packageManager.name} project`,
+        command: this.packageManager.init(),
       });
     }
 
@@ -196,14 +199,14 @@ export class Generator {
     if (!this.options.ct) {
       commands.push({
         name: 'Installing Playwright Test',
-        command: packageManager.installDevDependency(`@playwright/test${packageTag}`),
+        command: this.packageManager.installDevDependency(`@playwright/test${packageTag}`),
       });
     }
 
     if (this.options.ct) {
       commands.push({
         name: 'Installing Playwright Component Testing',
-        command: packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
+        command: this.packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
       });
 
       const extension = getFileExtensionCT(answers.language, answers.framework);
@@ -217,7 +220,7 @@ export class Generator {
     if (!this._hasDependency('@types/node')) {
       commands.push({
         name: 'Installing Types',
-        command: packageManager.installDevDependency(`@types/node`),
+        command: this.packageManager.installDevDependency(`@types/node`),
       });
     }
 
@@ -225,7 +228,7 @@ export class Generator {
     if (answers.installPlaywrightBrowsers) {
       commands.push({
         name: 'Downloading browsers',
-        command: packageManager.npx('playwright', 'install') + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
+        command: this.packageManager.npx('playwright', 'install') + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
       });
     }
 
@@ -285,27 +288,27 @@ export class Generator {
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(packageManager.runPlaywrightTest())}
+  ${colors.cyan(this.packageManager.runPlaywrightTest())}
     Runs the end-to-end tests.
 
-  ${colors.cyan(packageManager.runPlaywrightTest('--ui'))}
+  ${colors.cyan(this.packageManager.runPlaywrightTest('--ui'))}
     Starts the interactive UI mode.
 
-  ${colors.cyan(packageManager.runPlaywrightTest('--project=chromium'))}
+  ${colors.cyan(this.packageManager.runPlaywrightTest('--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(packageManager.runPlaywrightTest('example'))}
+  ${colors.cyan(this.packageManager.runPlaywrightTest('example'))}
     Runs the tests in a specific file.
 
-  ${colors.cyan(packageManager.runPlaywrightTest('--debug'))}
+  ${colors.cyan(this.packageManager.runPlaywrightTest('--debug'))}
     Runs the tests in debug mode.
 
-  ${colors.cyan(packageManager.npx('playwright', 'codegen'))}
+  ${colors.cyan(this.packageManager.npx('playwright', 'codegen'))}
     Auto generate tests with Codegen.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(prefix + '  ' + packageManager.runPlaywrightTest())}
+  ${colors.cyan(prefix + '  ' + this.packageManager.runPlaywrightTest())}
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
@@ -322,21 +325,21 @@ Happy hacking! 🎭`);
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(`${packageManager.cli} run test-ct`)}
+  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
     Runs the component tests.
 
-  ${colors.cyan(`${packageManager.cli} run test-ct -- --project=chromium`)}
+  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --project=chromium`)}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(`${packageManager.cli} run test-ct App.test.ts`)}
+  ${colors.cyan(`${this.packageManager.cli} run test-ct App.test.ts`)}
     Runs the tests in the specific file.
 
-  ${colors.cyan(`${packageManager.cli} run test-ct -- --debug`)}
+  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --debug`)}
     Runs the tests in debug mode.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(`${packageManager.cli} run test-ct`)}
+  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
