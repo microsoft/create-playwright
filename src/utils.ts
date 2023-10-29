@@ -82,7 +82,7 @@ export function executeTemplate(input: string, args: Record<string, string>, sec
 }
 
 export function getFileExtensionCT(language: PromptOptions['language'], framework: PromptOptions['framework']) {
-  const isJsxFramework = framework === 'solid' || framework === 'react';
+  const isJsxFramework = framework === 'solid' || framework === 'react' || framework === 'react17';
   if (isJsxFramework && language === 'JavaScript')
     return 'jsx';
   else if (isJsxFramework && language === 'TypeScript')
