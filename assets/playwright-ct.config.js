@@ -1,5 +1,8 @@
 // @ts-check
 const { defineConfig, devices } = require('{{ctPackageName}}');
+//--begin-angular
+const angular = require('@analogjs/vite-plugin-angular').default;
+//--end-angular
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -27,6 +30,10 @@ module.exports = defineConfig({
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
+    //--begin-angular
+
+    ctViteConfig: { plugins: [angular()] },
+    //--end-angular
   },
 
   /* Configure projects for major browsers */

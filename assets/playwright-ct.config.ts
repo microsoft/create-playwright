@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '{{ctPackageName}}';
+//--begin-angular
+import angular from '@analogjs/vite-plugin-angular';
+//--end-angular
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -26,6 +29,10 @@ export default defineConfig({
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
+    //--begin-angular
+
+    ctViteConfig: { plugins: [angular()] },
+    //--end-angular
   },
 
   /* Configure projects for major browsers */

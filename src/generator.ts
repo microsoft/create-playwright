@@ -26,7 +26,7 @@ export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
   language: 'JavaScript' | 'TypeScript',
-  framework?: 'react' | 'react17' | 'vue' | 'vue2' | 'svelte' | 'solid' | undefined,
+  framework?: 'angular' | 'react' | 'react17' | 'vue' | 'vue2' | 'svelte' | 'solid' | undefined,
   installPlaywrightDependencies: boolean,
   installPlaywrightBrowsers: boolean,
 };
@@ -104,6 +104,7 @@ export class Generator {
         name: 'framework',
         message: 'Which framework do you use? (experimental)',
         choices: [
+          { name: 'angular', message: 'Angular' },
           { name: 'react', message: 'React 18' },
           { name: 'react17', message: 'React 17' },
           { name: 'vue', message: 'Vue 3' },
@@ -153,7 +154,11 @@ export class Generator {
     const sections = new Map<string, 'show' | 'hide' | 'comment'>();
     for (const browserName of ['chromium', 'firefox', 'webkit'])
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
-
+    
+    if (answers.framework === 'angular') {
+      sections.set('angular', 'show');
+    }
+    
     let ctPackageName;
     let installExamples = true;
     if (answers.framework) {
@@ -215,6 +220,13 @@ export class Generator {
 
       const jsTemplate = this._readAsset(path.join('playwright', 'index.js'));
       files.set(`playwright/index.${extension}`, jsTemplate);
+    }
+
+    if (answers.framework === 'angular') {
+      commands.push({
+        name: 'Installing @analogjs/vite-plugin-angular',
+        command: this.packageManager.installDevDependency('@analogjs/vite-plugin-angular'),
+      });
     }
 
     if (!this._hasDependency('@types/node')) {
