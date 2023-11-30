@@ -23,10 +23,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.44.1",
+    "@types/ini": "^4.1.1",
     "@types/node": "^18.19.33",
     "ansi-colors": "^4.1.1",
     "enquirer": "^2.3.6",
     "esbuild": "^0.14.25",
+    "ini": "^4.1.3",
     "typescript": "^5.4.5"
   }
 }
