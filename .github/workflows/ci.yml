@@ -10,18 +10,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16.x, 18.x, 20.x]
+        node-version: [18.x, 20.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm i -g npm@8
     - run: npm i -g yarn@1
-    - run: npm i -g pnpm@7
+    - run: npm i -g pnpm@8
     - run: npm ci
     - run: npx playwright install-deps
     - run: npm run build
