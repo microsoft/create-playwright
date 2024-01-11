@@ -22,8 +22,8 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.38.1",
-    "@types/node": "^16.11.11",
+    "@playwright/test": "^1.41.0-alpha-1704968142000",
+    "@types/node": "^18.19.6",
     "ansi-colors": "^4.1.1",
     "enquirer": "^2.3.6",
     "esbuild": "^0.14.25",

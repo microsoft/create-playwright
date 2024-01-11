@@ -16,7 +16,7 @@
 import { defineConfig } from '@playwright/test';
 import type { TestFixtures } from './tests/baseFixtures';
 
-export default defineConfig<TestFixtures>({
+const config = defineConfig<TestFixtures>({
   timeout: 120 * 1000,
   testDir: './tests',
   reporter: 'list',
@@ -42,3 +42,15 @@ export default defineConfig<TestFixtures>({
     },
   ]
 });
+
+// https://github.com/oven-sh/bun/issues/43
+if (process.platform !== 'win32') {
+  config.projects?.push({
+    name: 'bun',
+    use: {
+      packageManager: 'bun'
+    }
+  })
+}
+
+export default config;

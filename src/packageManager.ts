@@ -102,12 +102,43 @@ class PNPM implements PackageManager {
   }
 }
 
+class Bun implements PackageManager {
+  name = 'Bun'
+  cli = 'bun'
+
+  init(): string {
+    return 'bun init -y'
+  }
+
+  npx(command: string, args: string): string {
+    return `bun --bun x ${command} ${args}`
+  }
+
+  ci(): string {
+    return 'bun install'
+  }
+
+  installDevDependency(name: string): string {
+    return `bun install --dev ${name}`
+  }
+
+  runPlaywrightTest(args: string): string {
+    return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
+  }
+
+  run(script: string): string {
+    return `bun run ${script}`;
+  }
+}
+
 export function determinePackageManager(rootDir: string): PackageManager {
   if (process.env.npm_config_user_agent) {
     if (process.env.npm_config_user_agent.includes('yarn'))
       return new Yarn();
     if (process.env.npm_config_user_agent.includes('pnpm'))
       return new PNPM(fs.existsSync(path.resolve(rootDir, 'pnpm-workspace.yaml')));
+    if (process.env.npm_config_user_agent.includes('bun'))
+      return new Bun();
     return new NPM();
   }
   return new NPM();

@@ -22,6 +22,9 @@ jobs:
     - run: npm i -g npm@8
     - run: npm i -g yarn@1
     - run: npm i -g pnpm@7
+    # https://github.com/oven-sh/bun/issues/43
+    - run: npm i -g bun@1
+      if: matrix.os != 'windows-latest'
     - run: npm ci
     - run: npx playwright install-deps
     - run: npm run build

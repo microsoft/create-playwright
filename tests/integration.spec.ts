@@ -41,6 +41,10 @@ test('should generate a project in the current directory', async ({ run, dir, pa
     expect(stdout).toContain('pnpm init'); // pnpm command outputs name in different case, hence we are not testing the whole string
     expect(stdout).toContain('Installing Playwright Test (pnpm add --save-dev @playwright/test)…');
     expect(stdout).toContain('Installing Types (pnpm add --save-dev @types/node)…');
+  } else if (packageManager === 'bun') {
+    expect(stdout).toContain('Initializing Bun project (bun init -y)…');
+    expect(stdout).toContain('Installing Playwright Test (bun install --dev @playwright/test)…');
+    expect(stdout).toContain('Installing Types (bun install --dev @types/node)…');
   }
   expect(stdout).toContain('npx playwright install' + process.platform === 'linux' ? ' --with-deps' : '');
 });

@@ -20,7 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import type { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn';
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
 
 export type TestFixtures = {
   packageManager: PackageManager;
@@ -82,13 +82,26 @@ export const test = base.extend<TestFixtures>({
         cwd: dir,
         env: {
           ...process.env,
-          'npm_config_user_agent': packageManager === 'yarn' ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
+          'npm_config_user_agent': packageManagerToNpmConfigUserAgent(packageManager),
           'TEST_OPTIONS': JSON.stringify(options),
         },
       });
     });
   },
 });
+
+function packageManagerToNpmConfigUserAgent(packageManager: PackageManager): string {
+  switch (packageManager) {
+    case 'npm':
+      return 'npm/10.2.4 node/v20.11.0 linux x64 workspaces/false'
+    case 'yarn':
+      return 'yarn/1.22.21 npm/? node/v20.11.0 linux x64';
+    case 'pnpm':
+      return 'pnpm/8.14.1 npm/? node/v20.11.0 linux x64';
+    case 'bun':
+      return 'bun/1.0.22 npm/? node/v20.8.0 linux x64'  
+  }
+}
 
 export function assertLockFilesExist(dir: string, packageManager: PackageManager) {
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -98,6 +111,8 @@ export function assertLockFilesExist(dir: string, packageManager: PackageManager
     expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
   else if (packageManager === 'pnpm')
     expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
+  else if (packageManager === 'bun')
+    expect(fs.existsSync(path.join(dir, 'bun.lockb'))).toBeTruthy();
 }
 
 export function packageManagerToNpxCommand(packageManager: PackageManager): string {
@@ -108,7 +123,10 @@ export function packageManagerToNpxCommand(packageManager: PackageManager): stri
       return 'yarn';
     case 'pnpm':
       return 'pnpm dlx';
+    case 'bun':
+      return 'bun --bun x';
   }
+  throw new Error(`Unsupported package manager: ${packageManager}!`);
 }
 
 export const expect = test.expect;
