@@ -36,10 +36,8 @@ const assetsDir = path.join(__dirname, '..', 'assets');
 type CliArgumentKey = 'browser'
   | 'no-browsers'
   | 'next'
-  | 'next'
   | 'beta'
   | 'ct'
-  | 'quiet'
   | 'quiet'
   | 'gha'
   | 'install-deps'
@@ -63,7 +61,7 @@ export class Generator {
     this._patchGitIgnore();
     await this._patchPackageJSON(answers);
     if (answers.framework)
-      this._printEpilogueCT(answers);
+      this._printEpilogueCT();
     else
       this._printEpilogue(answers);
   }
@@ -320,7 +318,7 @@ Visit https://playwright.dev/docs/intro for more information. ✨
 Happy hacking! 🎭`);
   }
 
-  private _printEpilogueCT(answers: PromptOptions) {
+  private _printEpilogueCT() {
     console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
     console.log(`
 Inside that directory, you can run several commands:
