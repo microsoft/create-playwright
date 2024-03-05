@@ -55,11 +55,16 @@ export class Generator {
   async run() {
     this._printPrologue();
     const answers = await this._askQuestions();
-    const { files, commands } = await this._identifyChanges(answers);
-    executeCommands(this.rootDir, commands);
+    const { files, commands: allCommands } = await this._identifyChanges(answers);
+    const [preCommands, postCommands] = allCommands.reduce((acc, command) => {
+      acc[command.phase === 'pre' ? 0 : 1].push(command);
+      return acc;
+    }, [[] as Command[], [] as Command[]]);
+    executeCommands(this.rootDir, preCommands);
     await createFiles(this.rootDir, files);
     this._patchGitIgnore();
     await this._patchPackageJSON(answers);
+    executeCommands(this.rootDir, postCommands);
     if (answers.framework)
       this._printEpilogueCT();
     else
@@ -144,7 +149,7 @@ export class Generator {
   }
 
   private async _identifyChanges(answers: PromptOptions) {
-    const commands: Command[] = [];
+    const commands: (Command & { phase: 'pre' | 'post' })[] = [];
     const files = new Map<string, string>();
     const fileExtension = languageToFileExtension(answers.language);
 
@@ -185,6 +190,7 @@ export class Generator {
       commands.push({
         name: `Initializing ${this.packageManager.name} project`,
         command: this.packageManager.init(),
+        phase: 'pre',
       });
     }
 
@@ -198,6 +204,7 @@ export class Generator {
       commands.push({
         name: 'Installing Playwright Test',
         command: this.packageManager.installDevDependency(`@playwright/test${packageTag}`),
+        phase: 'pre',
       });
     }
 
@@ -205,6 +212,7 @@ export class Generator {
       commands.push({
         name: 'Installing Playwright Component Testing',
         command: this.packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
+        phase: 'pre',
       });
 
       const extension = getFileExtensionCT(answers.language, answers.framework);
@@ -219,6 +227,7 @@ export class Generator {
       commands.push({
         name: 'Installing Types',
         command: this.packageManager.installDevDependency(`@types/node`),
+        phase: 'pre',
       });
     }
 
@@ -227,6 +236,7 @@ export class Generator {
       commands.push({
         name: 'Downloading browsers',
         command: this.packageManager.npx('playwright', 'install') + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
+        phase: 'post',
       });
     }
 
