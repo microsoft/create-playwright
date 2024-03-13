@@ -35,6 +35,7 @@ const assetsDir = path.join(__dirname, '..', 'assets');
 
 type CliArgumentKey = 'browser'
   | 'no-browsers'
+  | 'no-examples'
   | 'next'
   | 'beta'
   | 'ct'
@@ -158,7 +159,7 @@ export class Generator {
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
     let ctPackageName;
-    let installExamples = true;
+    let installExamples = !this.options['no-examples'];
     if (answers.framework) {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
       installExamples = false;
