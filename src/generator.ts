@@ -33,21 +33,34 @@ export type PromptOptions = {
 
 const assetsDir = path.join(__dirname, '..', 'assets');
 
-type CliArgumentKey = 'browser'
-  | 'no-browsers'
-  | 'no-examples'
-  | 'next'
-  | 'beta'
-  | 'ct'
-  | 'quiet'
-  | 'gha'
-  | 'install-deps'
-  | 'lang';
+export const allOptions = [
+  ['--help', 'print this message'],
+  ['--browser=<name>', "browsers to use in default config (default: 'chromium,firefox,webkit')"],
+  ['--browsers', 'download and use default browsers'],
+  ['--no-browsers', "do not download browsers (can be done manually via 'npx playwright install')"],
+  ['--no-examples', 'do not create example test files'],
+  ['--install-deps', 'install dependencies (default: false)'],
+  ['--next', 'install @next version of Playwright'],
+  ['--beta', 'install @beta version of Playwright'],
+  ['--ct', 'install Playwright Component testing'],
+  ['--quiet', 'do not ask for interactive input prompts'],
+  ['--gha', 'install GitHub Actions'],
+  ['--lang=<js>', "language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')"],
+] as const;
+
+type OptionName = Exclude<
+  (typeof allOptions)[number][0] extends `--${infer Option}`
+    ? Option extends `${infer Name}=<${string}>`
+      ? Name
+      : Option
+    : never,
+  'help'
+>;
 
 export class Generator {
   private packageManager: PackageManager;
 
-  constructor(private readonly rootDir: string, private readonly options: Partial<Record<CliArgumentKey, string[]>>) {
+  constructor(private readonly rootDir: string, private readonly options: Partial<Record<OptionName, string[]>>) {
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
     this.packageManager = determinePackageManager(rootDir);
@@ -132,7 +145,8 @@ export class Generator {
         type: 'confirm',
         name: 'installPlaywrightBrowsers',
         message: `Install Playwright browsers (can be done manually via '${this.packageManager.npx('playwright', 'install')}')?`,
-        initial: true,
+        initial: true,    
+        skip: () => !!this.options.browsers,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)

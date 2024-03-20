@@ -15,7 +15,21 @@
  */
 
 import path from 'path';
-import { Generator } from './generator';
+import { Generator, allOptions } from './generator';
+
+const booleanOptionPairs: [OptionName, OptionName][] = [];
+
+for (const [option] of allOptions) {
+  if (option.startsWith('--no-')) {
+    const positiveOption = option.replace('--no-', '--') as Option;
+    if (allOptions.map(([option]) => option).includes(positiveOption)) {
+      booleanOptionPairs.push([
+        option.replace('--', '') as OptionName,
+        positiveOption.replace('--', '') as OptionName,
+      ]);
+    }
+  }
+}
 
 (async () => {
   const argv = process.argv.slice(2);
@@ -38,6 +52,20 @@ import { Generator } from './generator';
     _printHelp();
     process.exit(0);
   }
+
+  const bothBooleanOptionsSpecified = booleanOptionPairs.filter(
+    ([positive, negative]) => options[positive] && options[negative],
+  );
+  if (bothBooleanOptionsSpecified.length > 0) {
+    console.error(
+      `Cannot specify both of:
+  ${bothBooleanOptionsSpecified
+    .map(([positive, negative]) => `- ${positive} and ${negative}`)
+    .join('\n')}`,
+    );
+    process.exit(1);
+  }
+
   const rootDir = path.resolve(process.cwd(), args[0] || '');
   const generator = new Generator(rootDir, options);
   await generator.run();
@@ -49,16 +77,6 @@ import { Generator } from './generator';
 function _printHelp() {
   console.log(`Usage: npx create-playwright@latest [options] [rootDir]
     Available options are:
-      --help: print this message
-      --browser=<name>: browsers to use in default config (default: 'chromium,firefox,webkit')
-      --no-browsers: do not download browsers (can be done manually via 'npx playwright install')
-      --no-examples: do not create example test files
-      --install-deps: install dependencies (default: false)
-      --next: install @next version of Playwright
-      --beta: install @beta version of Playwright
-      --ct: install Playwright Component testing
-      --quiet: do not ask for interactive input prompts
-      --gha: install GitHub Actions
-      --lang=<js>: language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')
+${allOptions.map(([option, description]) => `      ${option}: ${description}`).join('\n')}
     `);
 }
