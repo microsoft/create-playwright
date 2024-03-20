@@ -48,11 +48,13 @@ export const allOptions = [
   ['--lang=<js>', "language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')"],
 ] as const;
 
+export type Option = (typeof allOptions)[number][0];
+
 export type OptionName = Exclude<
-  (typeof allOptions)[number][0] extends `--${infer Option}`
-    ? Option extends `${infer Name}=<${string}>`
-      ? Name
-      : Option
+  Option extends `--${infer BooleanOptionName}`
+    ? BooleanOptionName extends `${infer NonBooleanOptionName}=<${string}>`
+      ? NonBooleanOptionName
+      : BooleanOptionName
     : never,
   'help'
 >;
