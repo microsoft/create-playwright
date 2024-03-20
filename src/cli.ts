@@ -15,7 +15,7 @@
  */
 
 import path from 'path';
-import { Generator, allOptions } from './generator';
+import { allOptions, Generator, OptionName } from './generator';
 
 const booleanOptionPairs: [OptionName, OptionName][] = [];
 
