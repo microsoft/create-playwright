@@ -42,7 +42,8 @@ type CliArgumentKey = 'browser'
   | 'quiet'
   | 'gha'
   | 'install-deps'
-  | 'lang';
+  | 'lang'
+  | 'test-dir';
 
 export class Generator {
   private packageManager: PackageManager;
@@ -85,7 +86,7 @@ export class Generator {
         installGitHubActions: !!this.options.gha,
         language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options['install-deps'],
-        testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        testDir: this.options['test-dir']?.[0] || fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
         framework: undefined,
         installPlaywrightBrowsers: !this.options['no-browsers'],
       };
@@ -120,7 +121,8 @@ export class Generator {
         type: 'text',
         name: 'testDir',
         message: 'Where to put your end-to-end tests?',
-        initial: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        initial: this.options['test-dir']?.[0] || fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        skip: !!this.options['test-dir']
       },
       !this.options.ct && {
         type: 'confirm',

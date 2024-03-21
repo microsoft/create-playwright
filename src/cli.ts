@@ -60,5 +60,6 @@ function _printHelp() {
       --quiet: do not ask for interactive input prompts
       --gha: install GitHub Actions
       --lang=<js>: language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')
+      --test-dir=<folder>: folder where to put your e2e tests
     `);
 }
