@@ -148,7 +148,7 @@ export class Generator {
         name: 'installPlaywrightBrowsers',
         message: `Install Playwright browsers (can be done manually via '${this.packageManager.npx('playwright', 'install')}')?`,
         initial: true,    
-        skip: () => !!this.options.browsers,
+        skip: !!this.options.browsers,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
