@@ -10,7 +10,9 @@
     "noEmit": true,
     "noImplicitOverride": true,
     "useUnknownInCatchVariables": false,
+    "noUncheckedIndexedAccess": true
   },
   "compileOnSave": true,
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "assets"],
+  "exclude": ["assets/playwright-ct.config.ts", "assets/playwright-ct.config.js"]
 }

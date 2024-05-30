@@ -26,8 +26,10 @@ import { Generator } from './generator';
     if (!match)
       continue;
     const [, name, value] = match;
+    if (!name)
+      continue;
     const oldValue = options[name];
-    if (oldValue)
+    if (oldValue && value)
       oldValue.push(value);
     else if (value)
       options[name] = [value];
