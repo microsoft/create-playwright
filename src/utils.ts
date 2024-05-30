@@ -58,15 +58,15 @@ export async function createFiles(rootDir: string, files: Map<string, string>, f
 
 export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
   for (const key in args)
-    input = input.replace(new RegExp('{{' + key + '}}', 'g'), args[key]);
+    input = input.replace(new RegExp('{{' + key + '}}', 'g'), args[key]!);
   const result: string[] = [];
   let mode: 'show' | 'hide' | 'comment' = 'show';
   let indent = '';
   for (const line of input.split('\n')) {
     const match = line.match(/(\s*)\/\/--begin-(.*)/);
     if (match) {
-      mode = sections.get(match[2]) || 'comment';
-      indent = match[1];
+      mode = sections.get(match[2]!) || 'comment';
+      indent = match[1]!;
       continue;
     }
     if (line.trim().startsWith('//--end-')) {
