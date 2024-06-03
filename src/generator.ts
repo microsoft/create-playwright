@@ -258,12 +258,12 @@ export class Generator {
     let gitIgnore = '';
     if (fs.existsSync(gitIgnorePath))
       gitIgnore = fs.readFileSync(gitIgnorePath, 'utf-8').trimEnd() + '\n';
-    if (!gitIgnore.includes('node_modules'))
-      gitIgnore += 'node_modules/\n';
-    gitIgnore += '/test-results/\n';
-    gitIgnore += '/playwright-report/\n';
-    gitIgnore += '/blob-report/\n';
-    gitIgnore += '/playwright/.cache/\n';
+    const valuesToAdd = ['node_modules/', '/test-results/', '/playwright-report/', '/blob-report/', '/playwright/.cache/'];
+    valuesToAdd.forEach(value => {
+      if (!gitIgnore.includes(value)) {
+        gitIgnore += `${value}\n`;
+      }
+    });
     fs.writeFileSync(gitIgnorePath, gitIgnore);
   }
 
