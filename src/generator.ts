@@ -18,6 +18,7 @@ import fs from 'fs';
 
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
+import ini from 'ini';
 
 import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension, getFileExtensionCT } from './utils';
 import { type PackageManager, determinePackageManager } from './packageManager';
@@ -174,8 +175,10 @@ export class Generator {
     }
 
     if (answers.installGitHubActions) {
+      const npmrcExists = fs.existsSync(path.join(this.rootDir, '.npmrc'));
+      const packageLockDisabled = npmrcExists && ini.parse(fs.readFileSync(path.join(this.rootDir, '.npmrc'), 'utf-8'))['package-lock'] === false;
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
-        installDepsCommand: this.packageManager.ci(),
+        installDepsCommand: packageLockDisabled ? this.packageManager.i() : this.packageManager.ci(),
         installPlaywrightCommand: this.packageManager.npx('playwright', 'install --with-deps'),
         runTestsCommand: answers.framework ? this.packageManager.run('test-ct') : this.packageManager.runPlaywrightTest(),
       }, new Map());
