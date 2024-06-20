@@ -7,6 +7,7 @@ export interface PackageManager {
   init(): string
   npx(command: string, args: string): string
   ci(): string
+  i(): string
   installDevDependency(name: string): string
   runPlaywrightTest(args?: string): string
   run(script: string): string
@@ -26,6 +27,10 @@ class NPM implements PackageManager {
 
   ci(): string {
     return 'npm ci'
+  }
+
+  i(): string {
+    return 'npm i'
   }
 
   installDevDependency(name: string): string {
@@ -55,6 +60,10 @@ class Yarn implements PackageManager {
 
   ci(): string {
     return 'npm install -g yarn && yarn'
+  }
+
+  i(): string {
+    return this.ci()
   }
 
   installDevDependency(name: string): string {
@@ -87,6 +96,10 @@ class PNPM implements PackageManager {
 
   ci(): string {
     return 'npm install -g pnpm && pnpm install'
+  }
+
+  i(): string {
+    return this.ci()
   }
 
   installDevDependency(name: string): string {

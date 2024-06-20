@@ -101,3 +101,26 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 });
+
+test('should install with "npm ci" in GHA when using npm with package-lock enabled', async ({ dir, run, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+  
+  await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+
+  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  expect(workflowContent).not.toContain('run: npm i');
+  expect(workflowContent).toContain('run: npm ci');
+});
+
+test('should install with "npm i" in GHA when using npm with package-lock disabled', async ({ dir, run, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+
+  fs.writeFileSync(path.join(dir, '.npmrc'), 'package-lock=false');
+  await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+
+  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  expect(workflowContent).toContain('run: npm i');
+  expect(workflowContent).not.toContain('run: npm ci');
+});
