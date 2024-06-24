@@ -101,6 +101,8 @@ export class Generator {
           { name: 'TypeScript' },
           { name: 'JavaScript' },
         ],
+        initial: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
+        skip: !!this.options.lang,
       },
       this.options.ct && {
         type: 'select',
@@ -111,8 +113,8 @@ export class Generator {
           { name: 'react17', message: 'React 17' },
           { name: 'vue', message: 'Vue 3' },
           { name: 'vue2', message: 'Vue 2' },
-          { name: 'svelte', message: 'Svelte'  },
-          { name: 'solid', message: 'Solid'  },
+          { name: 'svelte', message: 'Svelte' },
+          { name: 'solid', message: 'Solid' },
         ],
       },
       !this.options.ct && {
@@ -125,13 +127,15 @@ export class Generator {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: false,
+        initial: !!this.options.gha,
+        skip: !!this.options.gha,
       },
       {
         type: 'confirm',
         name: 'installPlaywrightBrowsers',
         message: `Install Playwright browsers (can be done manually via '${this.packageManager.npx('playwright', 'install')}')?`,
-        initial: true,
+        initial: !this.options['no-browsers'] || !!this.options.browser,
+        skip: !!this.options['no-browsers'] || !!this.options.browser,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
@@ -139,10 +143,16 @@ export class Generator {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
         message: `Install Playwright operating system dependencies (requires sudo / root - can be done manually via 'sudo ${this.packageManager.npx('playwright', 'install-deps')}')?`,
-        initial: false,
+        initial: !!this.options['install-deps'],
+        skip: !!this.options['install-deps'],
       },
     ];
-    const result = await prompt<PromptOptions>(questions.filter(Boolean) as any);
+    const result = await prompt<PromptOptions>(
+      questions.filter(Boolean) as Exclude<
+        (typeof questions)[number],
+        boolean | undefined
+      >[],
+    );
     if (isDefinitelyTS)
       result.language = 'TypeScript';
     return result;
