@@ -36,11 +36,11 @@ import { Generator } from './generator';
     else
       options[name] = [];
   }
-  const rootDir = path.resolve(process.cwd(), args[0] || '');
   if (options.help) {
     _printHelp();
-    process.exit(1);
+    process.exit(0);
   }
+  const rootDir = path.resolve(process.cwd(), args[0] || '');
   const generator = new Generator(rootDir, options);
   await generator.run();
 })().catch(error => {
