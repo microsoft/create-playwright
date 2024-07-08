@@ -19,7 +19,7 @@ import fs from 'fs';
 import childProcess from 'child_process';
 
 const validGitignore = [
-  'node_modules',
+  'node_modules/',
   '/test-results/',
   '/playwright-report/',
   '/blob-report/',
