@@ -271,12 +271,18 @@ export class Generator {
     let gitIgnore = '';
     if (fs.existsSync(gitIgnorePath))
       gitIgnore = fs.readFileSync(gitIgnorePath, 'utf-8').trimEnd() + '\n';
-    if (!gitIgnore.includes('node_modules'))
-      gitIgnore += 'node_modules/\n';
-    gitIgnore += '/test-results/\n';
-    gitIgnore += '/playwright-report/\n';
-    gitIgnore += '/blob-report/\n';
-    gitIgnore += '/playwright/.cache/\n';
+    const valuesToAdd = { 
+      'node_modules/': /^node_modules\/?/m,
+      '/test-results/': /^\/?test-results\/?$/m,
+      '/playwright-report/': /^\/playwright-report\/?$/m,
+      '/blob-report/': /^\/blob-report\/?$/m,
+      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m
+    };
+    Object.entries(valuesToAdd).forEach(([value, regex]) => {
+      if (!gitIgnore.match(regex)) {
+        gitIgnore += `${value}\n`;
+      }
+    });
     fs.writeFileSync(gitIgnorePath, gitIgnore);
   }
 
