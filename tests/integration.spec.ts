@@ -37,7 +37,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
   expect(playwrightConfigContent).toContain('tests');
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, '.gitignore'))).toBeTruthy();
-  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' })).toMatch(validGitignore);
+  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' }).trim()).toBe(validGitignore);
   if (packageManager === 'npm') {
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
     expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
@@ -115,7 +115,7 @@ test('should not duplicate gitignore entries', async ({ run, dir }) => {
   fs.writeFileSync(path.join(dir, '.gitignore'), validGitignore);
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
-  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' })).toMatch(validGitignore);
+  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' }).trim()).toBe(validGitignore);
 })
 
 test('should install with "npm ci" in GHA when using npm with package-lock enabled', async ({ dir, run, packageManager }) => {
