@@ -18,7 +18,13 @@ import path from 'path';
 import fs from 'fs';
 import childProcess from 'child_process';
 
-const validGitignore = 'node_modules/\n/test-results/\n/playwright-report/\n/blob-report/\n/playwright/.cache/\n';
+const validGitignore = [
+  'node_modules',
+  '/test-results/',
+  '/playwright-report/',
+  '/blob-report/',
+  '/playwright/.cache/',
+].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.slow();
@@ -106,8 +112,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 });
 
 test('should not duplicate gitignore entries', async ({ run, dir }) => {
-  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
-  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' })).toMatch(validGitignore);
+  fs.writeFileSync(path.join(dir, '.gitignore'), validGitignore);
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' })).toMatch(validGitignore);
