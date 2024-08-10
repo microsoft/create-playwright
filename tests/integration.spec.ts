@@ -18,6 +18,14 @@ import path from 'path';
 import fs from 'fs';
 import childProcess from 'child_process';
 
+const validGitignore = [
+  'node_modules/',
+  '/test-results/',
+  '/playwright-report/',
+  '/blob-report/',
+  '/playwright/.cache/',
+].join('\n');
+
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.slow();
   const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
@@ -29,6 +37,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
   expect(playwrightConfigContent).toContain('tests');
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, '.gitignore'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' }).trim()).toBe(validGitignore);
   if (packageManager === 'npm') {
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
     expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
@@ -101,6 +110,13 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 });
+
+test('should not duplicate gitignore entries', async ({ run, dir }) => {
+  fs.writeFileSync(path.join(dir, '.gitignore'), validGitignore);
+
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' }).trim()).toBe(validGitignore);
+})
 
 test('should install with "npm ci" in GHA when using npm with package-lock enabled', async ({ dir, run, packageManager }) => {
   test.skip(packageManager !== 'npm');
