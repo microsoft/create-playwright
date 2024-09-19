@@ -60,7 +60,8 @@ function _printHelp() {
       --beta: install @beta version of Playwright
       --ct: install Playwright Component testing
       --quiet: do not ask for interactive input prompts
-      --gha: install GitHub Actions
+      --gha: create GitHub Actions workflow
+      --no-gha: do not create GitHub Actions workflow
       --lang=<js>: language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')
     `);
 }

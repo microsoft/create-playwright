@@ -42,6 +42,7 @@ type CliArgumentKey = 'browser'
   | 'ct'
   | 'quiet'
   | 'gha'
+  | 'no-gha'
   | 'install-deps'
   | 'lang';
 
@@ -129,8 +130,9 @@ export class Generator {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: !!this.options.gha,
-        skip: !!this.options.gha,
+        // Default to false, even when --no-gha not passed
+        initial: !!this.options['no-gha'] ? false : !!this.options.gha,
+        skip: !!this.options['no-gha'] || !!this.options.gha,
       },
       {
         type: 'confirm',
