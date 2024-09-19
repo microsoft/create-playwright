@@ -51,3 +51,47 @@ test('should be able to generate and run a CT React project', async ({ run, dir,
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'install-deps']);
   await exec(packageManager, ['run', 'test-ct']);
 });
+
+test('should be able to generate a TypeScript CT Angular project with ctViteConfig', async ({
+  run,
+  dir,
+}) => {
+  test.slow();
+  await run(['--ct'], {
+    installGitHubActions: false,
+    testDir: 'tests',
+    language: 'TypeScript',
+    installPlaywrightBrowsers: false,
+    installPlaywrightDependencies: false,
+    framework: 'angular',
+  });
+
+  const playwrightConfigLines = getFileLines(path.join(dir, 'playwright-ct.config.ts'));
+
+  expect(JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).devDependencies['@analogjs/vite-plugin-angular']).toEqual(expect.any(String));
+  expect(playwrightConfigLines).toContainEqual(`import angular from '@analogjs/vite-plugin-angular';`);
+  expect(playwrightConfigLines).toContainEqual('ctViteConfig: { plugins: [angular()] },');
+});
+
+test('should be able to generate a JavaScript CT Angular project with ctViteConfig', async ({
+  run,
+  dir,
+}) => {
+  test.slow();
+  await run(['--ct'], {
+    installGitHubActions: false,
+    testDir: 'tests',
+    language: 'JavaScript',
+    installPlaywrightBrowsers: false,
+    installPlaywrightDependencies: false,
+    framework: 'angular',
+  });
+
+  const playwrightConfigLines = getFileLines(path.join(dir, 'playwright-ct.config.js'));
+  expect(playwrightConfigLines).toContainEqual(`const angular = require('@analogjs/vite-plugin-angular').default;`);
+  expect(playwrightConfigLines).toContainEqual('ctViteConfig: { plugins: [angular()] },');
+});
+
+function getFileLines(filePath: string) {
+  return fs.readFileSync(filePath, 'utf8').split('\n').map(line => line.trim());
+}
