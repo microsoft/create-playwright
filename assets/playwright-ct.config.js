@@ -1,5 +1,5 @@
 // @ts-check
-const { defineConfig, devices } = require('{{ctPackageName}}');
+import { defineConfig, devices } from '{{ctPackageName}}';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
