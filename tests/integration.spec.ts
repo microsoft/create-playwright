@@ -19,6 +19,7 @@ import path from 'path';
 import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from './baseFixtures';
 
 const validGitignore = [
+  '# Playwright',
   'node_modules/',
   '/test-results/',
   '/playwright-report/',
