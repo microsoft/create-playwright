@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect, packageManagerToNpxCommand, assertLockFilesExist } from './baseFixtures';
-import path from 'path';
-import fs from 'fs';
 import childProcess from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from './baseFixtures';
 
 const validGitignore = [
+  '# Playwright',
   'node_modules/',
   '/test-results/',
   '/playwright-report/',
@@ -120,7 +121,7 @@ test('should not duplicate gitignore entries', async ({ run, dir }) => {
 
 test('should install with "npm ci" in GHA when using npm with package-lock enabled', async ({ dir, run, packageManager }) => {
   test.skip(packageManager !== 'npm');
-  
+
   await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
 

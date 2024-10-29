@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
-import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
+import { prompt } from 'enquirer';
 import ini from 'ini';
 
-import { executeCommands, createFiles, executeTemplate, Command, languageToFileExtension, getFileExtensionCT } from './utils';
 import { type PackageManager, determinePackageManager } from './packageManager';
+import { Command, createFiles, executeCommands, executeTemplate, getFileExtensionCT, languageToFileExtension } from './utils';
 
 export type PromptOptions = {
   testDir: string,
@@ -271,7 +271,9 @@ export class Generator {
     let gitIgnore = '';
     if (fs.existsSync(gitIgnorePath))
       gitIgnore = fs.readFileSync(gitIgnorePath, 'utf-8').trimEnd() + '\n';
-    const valuesToAdd = { 
+
+    let thisIsTheFirstLineWeAreAdding = true;
+    const valuesToAdd = {
       'node_modules/': /^node_modules\/?/m,
       '/test-results/': /^\/?test-results\/?$/m,
       '/playwright-report/': /^\/playwright-report\/?$/m,
@@ -280,6 +282,11 @@ export class Generator {
     };
     Object.entries(valuesToAdd).forEach(([value, regex]) => {
       if (!gitIgnore.match(regex)) {
+        if (thisIsTheFirstLineWeAreAdding) {
+          gitIgnore += `\n# Playwright\n`;
+          thisIsTheFirstLineWeAreAdding = false;
+        }
+
         gitIgnore += `${value}\n`;
       }
     });
