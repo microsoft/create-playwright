@@ -274,11 +274,11 @@ export class Generator {
 
     let thisIsTheFirstLineWeAreAdding = true;
     const valuesToAdd = {
-      'node_modules/': /^node_modules\/?/m,
-      '/test-results/': /^\/?test-results\/?$/m,
-      '/playwright-report/': /^\/playwright-report\/?$/m,
       '/blob-report/': /^\/blob-report\/?$/m,
-      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m
+      '/playwright-report/': /^\/playwright-report\/?$/m,
+      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m,
+      '/test-results/': /^\/?test-results\/?$/m,
+      'node_modules/': /^node_modules\/?/m,
     };
     Object.entries(valuesToAdd).forEach(([value, regex]) => {
       if (!gitIgnore.match(regex)) {

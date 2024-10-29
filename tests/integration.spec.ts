@@ -20,11 +20,11 @@ import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from '
 
 const validGitignore = [
   '# Playwright',
-  'node_modules/',
-  '/test-results/',
-  '/playwright-report/',
   '/blob-report/',
+  '/playwright-report/',
   '/playwright/.cache/',
+  '/test-results/',
+  'node_modules/',
 ].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
