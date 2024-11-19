@@ -19,7 +19,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 import { prompt } from 'enquirer';
-import colors from 'ansi-colors';
+import { gray } from 'ansis';
 import { PromptOptions } from './generator';
 
 export type Command = {
@@ -50,7 +50,7 @@ export async function createFiles(rootDir: string, files: Map<string, string>, f
       if (!override)
         continue;
     }
-    console.log(colors.gray(`Writing ${path.relative(process.cwd(), absoluteFilePath)}.`));
+    console.log(gray`Writing ${path.relative(process.cwd(), absoluteFilePath)}.`);
     fs.mkdirSync(path.dirname(absoluteFilePath), { recursive: true });
     fs.writeFileSync(absoluteFilePath, value, 'utf-8');
   }

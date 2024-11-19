@@ -16,7 +16,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import colors from 'ansi-colors';
+import { cyan, green, yellow, bold } from 'ansis';
 import { prompt } from 'enquirer';
 import ini from 'ini';
 
@@ -74,7 +74,7 @@ export class Generator {
   }
 
   private _printPrologue() {
-    console.log(colors.yellow(`Getting started with writing ${colors.bold('end-to-end')} tests with ${colors.bold('Playwright')}:`));
+    console.log(yellow`Getting started with writing ${bold`end-to-end`} tests with ${bold`Playwright`}:`);
     console.log(`Initializing project in '${path.relative(process.cwd(), this.rootDir) || '.'}'`);
   }
 
@@ -314,7 +314,7 @@ export class Generator {
   }
 
   private _printEpilogue(answers: PromptOptions) {
-    console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
+    console.log(green`✔ Success!` + ' ' + bold`Created a Playwright Test project at ${this.rootDir}`);
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
     const exampleSpecPath = path.join(answers.testDir, `example.spec.${languageToFileExtension(answers.language)}`);
@@ -323,27 +323,27 @@ export class Generator {
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest())}
+  ${cyan(this.packageManager.runPlaywrightTest())}
     Runs the end-to-end tests.
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--ui'))}
+  ${cyan(this.packageManager.runPlaywrightTest('--ui'))}
     Starts the interactive UI mode.
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--project=chromium'))}
+  ${cyan(this.packageManager.runPlaywrightTest('--project=chromium'))}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest('example'))}
+  ${cyan(this.packageManager.runPlaywrightTest('example'))}
     Runs the tests in a specific file.
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--debug'))}
+  ${cyan(this.packageManager.runPlaywrightTest('--debug'))}
     Runs the tests in debug mode.
 
-  ${colors.cyan(this.packageManager.npx('playwright', 'codegen'))}
+  ${cyan(this.packageManager.npx('playwright', 'codegen'))}
     Auto generate tests with Codegen.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(prefix + '  ' + this.packageManager.runPlaywrightTest())}
+  ${cyan(prefix + '  ' + this.packageManager.runPlaywrightTest())}
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
@@ -356,25 +356,25 @@ Happy hacking! 🎭`);
   }
 
   private _printEpilogueCT() {
-    console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
+    console.log(green`✔ Success!` + ' ' + bold`Created a Playwright Test project at ${this.rootDir}`);
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
+  ${cyan(`${this.packageManager.cli} run test-ct`)}
     Runs the component tests.
 
-  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --project=chromium`)}
+  ${cyan(`${this.packageManager.cli} run test-ct -- --project=chromium`)}
     Runs the tests only on Desktop Chrome.
 
-  ${colors.cyan(`${this.packageManager.cli} run test-ct App.test.ts`)}
+  ${cyan(`${this.packageManager.cli} run test-ct App.test.ts`)}
     Runs the tests in the specific file.
 
-  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --debug`)}
+  ${cyan(`${this.packageManager.cli} run test-ct -- --debug`)}
     Runs the tests in debug mode.
 
 We suggest that you begin by typing:
 
-  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
+  ${cyan(`${this.packageManager.cli} run test-ct`)}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
