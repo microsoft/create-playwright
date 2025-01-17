@@ -49,6 +49,20 @@ class NPM implements PackageManager {
 class Yarn implements PackageManager {
   name = 'Yarn'
   cli = 'yarn'
+  private workspace: boolean
+
+  constructor(rootDir: string) {
+    this.workspace = this.isWorkspace(rootDir);
+  }
+
+  private isWorkspace(rootDir: string) {
+    try {
+      const packageJSON = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
+      return !!packageJSON.workspaces;
+    } catch (e) {
+      return false;
+    }
+  }
 
   init(): string {
     return 'yarn init -y'
@@ -67,7 +81,7 @@ class Yarn implements PackageManager {
   }
 
   installDevDependency(name: string): string {
-    return `yarn add --dev ${name}`
+    return `yarn add --dev ${this.workspace ? '-W ' : ''}${name}`
   }
 
   runPlaywrightTest(args: string): string {
@@ -82,8 +96,10 @@ class Yarn implements PackageManager {
 class PNPM implements PackageManager {
   name = 'pnpm'
   cli = 'pnpm'
+  private workspace: boolean;
 
-  constructor(private workspace: boolean) {
+  constructor(rootDir: string) {
+    this.workspace = fs.existsSync(path.resolve(rootDir, 'pnpm-workspace.yaml'));
   }
 
   init(): string {
@@ -118,10 +134,9 @@ class PNPM implements PackageManager {
 export function determinePackageManager(rootDir: string): PackageManager {
   if (process.env.npm_config_user_agent) {
     if (process.env.npm_config_user_agent.includes('yarn'))
-      return new Yarn();
+      return new Yarn(rootDir);
     if (process.env.npm_config_user_agent.includes('pnpm'))
-      return new PNPM(fs.existsSync(path.resolve(rootDir, 'pnpm-workspace.yaml')));
-    return new NPM();
+      return new PNPM(rootDir);
   }
   return new NPM();
 }

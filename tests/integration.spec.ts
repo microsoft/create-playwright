@@ -112,6 +112,31 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 });
 
+test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
+  test.skip(packageManager !== 'yarn');
+
+  const dir = test.info().outputDir;
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'package.json'), `{
+  "name": "yarn-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["packages/*"]
+}`);
+  for (const pkg of ['foo', 'bar']) {
+    const packageDir = path.join(dir, 'packages', pkg);
+    fs.mkdirSync(packageDir, { recursive: true });
+    childProcess.execSync('yarn init -y', { cwd: packageDir });
+  }
+  childProcess.execSync('yarn install', { cwd: dir });
+
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  assertLockFilesExist(dir, packageManager);
+  expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'node_modules/playwright'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});
+
 test('should not duplicate gitignore entries', async ({ run, dir }) => {
   fs.writeFileSync(path.join(dir, '.gitignore'), validGitignore);
 
