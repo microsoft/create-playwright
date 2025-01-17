@@ -22,7 +22,7 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.1",
+    "@playwright/test": "^1.49.1",
     "@types/ini": "^4.1.1",
     "@types/node": "^18.19.33",
     "ansi-colors": "^4.1.1",
