@@ -28,7 +28,7 @@ const validGitignore = [
 ].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
-  test.skip(packageManager === 'yarn');
+  test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
   const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
@@ -44,7 +44,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
     expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
     expect(stdout).toContain('Installing Types (npm install --save-dev @types/node)…');
-  } else if (packageManager === 'yarn') {
+  } else if (packageManager === 'yarn-classic') {
     expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
     expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
     expect(stdout).toContain('Installing Types (yarn add --dev @types/node)…');
@@ -57,7 +57,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 });
 
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
-  test.skip(packageManager === 'yarn');
+  test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();

@@ -18,7 +18,7 @@ import path from 'path';
 import fs from 'fs';
 
 test('should be able to generate and run a CT React project', async ({ run, dir, exec, packageManager }) => {
-  test.skip(packageManager === 'yarn');
+  test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
   await run(['--ct'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true, framework: 'react' });
   {
@@ -32,7 +32,7 @@ test('should be able to generate and run a CT React project', async ({ run, dir,
     expect(fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8')).toContain('test-ct');
   }
 
-  await exec(packageManager, [(packageManager === 'yarn' ? 'add' : 'install'), 'react', 'react-dom']);
+  await exec(packageManager, [((packageManager === 'yarn-classic' || packageManager === 'yarn-berry') ? 'add' : 'install'), 'react', 'react-dom']);
 
   fs.mkdirSync(path.join(dir, 'src'));
   fs.writeFileSync(path.join(dir, 'src/App.tsx'), 'export default () => <>Learn React</>;');
