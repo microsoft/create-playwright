@@ -128,9 +128,9 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
   for (const pkg of ['foo', 'bar']) {
     const packageDir = path.join(dir, 'packages', pkg);
     fs.mkdirSync(packageDir, { recursive: true });
-    childProcess.execSync(`${packageManager} init -y`, { cwd: packageDir });
+    childProcess.execSync(`yarn init -y`, { cwd: packageDir });
   }
-  childProcess.execSync(`${packageManager} install`, { cwd: dir });
+  childProcess.execSync(`yarn install`, { cwd: dir });
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
