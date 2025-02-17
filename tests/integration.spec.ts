@@ -28,6 +28,7 @@ const validGitignore = [
 ].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager === 'yarn');
   test.slow();
   const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
@@ -56,6 +57,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 });
 
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager === 'yarn');
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
@@ -113,7 +115,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 });
 
 test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
-  test.skip(packageManager !== 'yarn');
+  test.skip(packageManager !== 'npx yarn@1');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
@@ -126,9 +128,9 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
   for (const pkg of ['foo', 'bar']) {
     const packageDir = path.join(dir, 'packages', pkg);
     fs.mkdirSync(packageDir, { recursive: true });
-    childProcess.execSync('yarn init -y', { cwd: packageDir });
+    childProcess.execSync(`${packageManager} init -y`, { cwd: packageDir });
   }
-  childProcess.execSync('yarn install', { cwd: dir });
+  childProcess.execSync(`${packageManager} install`, { cwd: dir });
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);

@@ -19,6 +19,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: npm i -g yarn@latest
     - run: npm i -g yarn@1
     - run: npm i -g pnpm@8
     - run: npm ci

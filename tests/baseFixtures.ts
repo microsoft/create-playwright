@@ -20,7 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import type { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn';
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'npx yarn@1';
 
 export type TestFixtures = {
   packageManager: PackageManager;
@@ -106,6 +106,8 @@ export function packageManagerToNpxCommand(packageManager: PackageManager): stri
       return 'npx';
     case 'yarn':
       return 'yarn';
+    case 'npx yarn@1':
+      return 'npx yarn@1';
     case 'pnpm':
       return 'pnpm dlx';
   }

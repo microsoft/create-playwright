@@ -15,17 +15,27 @@
  */
 import { defineConfig } from '@playwright/test';
 import type { TestFixtures } from './tests/baseFixtures';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
   testDir: './tests',
   reporter: 'list',
   workers: process.env.CI ? 1 : undefined,
+  outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'create-playwright-test-')), // place test dir outside to prevent influece from `yarn.lock` or `package.json` in repo
   projects: [
     {
       name: 'npm',
       use: {
         packageManager: 'npm'
+      },
+    },
+    {
+      name: 'yarn-classic',
+      use: {
+        packageManager: 'npx yarn@1'
       }
     },
     {
