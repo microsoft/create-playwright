@@ -15,17 +15,27 @@
  */
 import { defineConfig } from '@playwright/test';
 import type { TestFixtures } from './tests/baseFixtures';
+import { mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
   testDir: './tests',
   reporter: 'list',
   workers: process.env.CI ? 1 : undefined,
+  outputDir: mkdtempSync(join(tmpdir(), 'playwright-test-')), // place test dir outside to prevent influece from `yarn.lock` or `package.json` in repo
   projects: [
     {
       name: 'npm',
       use: {
         packageManager: 'npm'
+      },
+    },
+    {
+      name: 'yarn-classic',
+      use: {
+        packageManager: 'npx yarn@1'
       }
     },
     {
