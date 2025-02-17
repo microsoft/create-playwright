@@ -115,7 +115,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 });
 
 test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
-  test.skip(packageManager !== 'yarn-classic');
+  test.skip(packageManager !== 'yarn-berry' && packageManager !== 'yarn-classic');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
@@ -135,7 +135,8 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
-  expect(fs.existsSync(path.join(dir, 'node_modules/playwright'))).toBeTruthy();
+  const writesNodeModules = packageManager === 'yarn-classic';
+  expect(fs.existsSync(path.join(dir, 'node_modules/playwright'))).toBe(writesNodeModules);
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 });
 

@@ -50,9 +50,12 @@ class Yarn implements PackageManager {
   name = 'Yarn'
   cli = 'yarn'
   private workspace: boolean
+  private classic = false;
 
-  constructor(rootDir: string) {
+  constructor(rootDir: string, version?: string) {
     this.workspace = this.isWorkspace(rootDir);
+    if (version)
+      this.classic = version.startsWith('0') || version.startsWith('1');
   }
 
   private isWorkspace(rootDir: string) {
@@ -81,7 +84,7 @@ class Yarn implements PackageManager {
   }
 
   installDevDependency(name: string): string {
-    return `yarn add --dev ${this.workspace ? '-W ' : ''}${name}`
+    return `yarn add --dev ${(this.workspace && this.classic) ? '-W ' : ''}${name}`
   }
 
   runPlaywrightTest(args: string): string {
@@ -132,10 +135,13 @@ class PNPM implements PackageManager {
 }
 
 export function determinePackageManager(rootDir: string): PackageManager {
-  if (process.env.npm_config_user_agent) {
-    if (process.env.npm_config_user_agent.includes('yarn'))
-      return new Yarn(rootDir);
-    if (process.env.npm_config_user_agent.includes('pnpm'))
+  const user_agent = process.env.npm_config_user_agent;
+  if (user_agent) {
+    if (user_agent.includes('yarn')) {
+      const yarnVersion = user_agent.match(/yarn\/(\d+\.\d+\.\d+)/)?.[1];
+      return new Yarn(rootDir, yarnVersion);
+    }
+    if (user_agent.includes('pnpm'))
       return new PNPM(rootDir);
   }
   return new NPM();
