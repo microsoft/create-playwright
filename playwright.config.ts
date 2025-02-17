@@ -24,7 +24,7 @@ export default defineConfig<TestFixtures>({
   testDir: './tests',
   reporter: 'list',
   workers: process.env.CI ? 1 : undefined,
-  outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'playwright-test-')), // place test dir outside to prevent influece from `yarn.lock` or `package.json` in repo
+  outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'create-playwright-test-')), // place test dir outside to prevent influece from `yarn.lock` or `package.json` in repo
   projects: [
     {
       name: 'npm',
