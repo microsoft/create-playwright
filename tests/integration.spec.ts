@@ -115,7 +115,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 });
 
 test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
-  test.skip(packageManager !== 'npx yarn@1');
+  test.skip(packageManager !== 'yarn-classic');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
@@ -167,4 +167,14 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
   expect(workflowContent).toContain('run: npm i');
   expect(workflowContent).not.toContain('run: npm ci');
+});
+
+test('is proper yarn classic', async ({ packageManager }) => {
+  test.skip(packageManager !== 'yarn-classic');
+  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8' })).toMatch(/^1\./);
+});
+
+test('is proper yarn berry', async ({ packageManager }) => {
+  test.skip(packageManager !== 'yarn-berry');
+  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8' })).toMatch(/^4\./);
 });
