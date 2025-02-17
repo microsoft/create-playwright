@@ -135,13 +135,13 @@ class PNPM implements PackageManager {
 }
 
 export function determinePackageManager(rootDir: string): PackageManager {
-  const user_agent = process.env.npm_config_user_agent;
-  if (user_agent) {
-    if (user_agent.includes('yarn')) {
-      const yarnVersion = user_agent.match(/yarn\/(\d+\.\d+\.\d+)/)?.[1];
+  const userAgent = process.env.npm_config_user_agent;
+  if (userAgent) {
+    if (userAgent.includes('yarn')) {
+      const yarnVersion = userAgent.match(/yarn\/(\d+\.\d+\.\d+)/)?.[1];
       return new Yarn(rootDir, yarnVersion);
     }
-    if (user_agent.includes('pnpm'))
+    if (userAgent.includes('pnpm'))
       return new PNPM(rootDir);
   }
   return new NPM();
