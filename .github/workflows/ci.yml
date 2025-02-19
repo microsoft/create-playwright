@@ -26,6 +26,6 @@ jobs:
     - run: npm run build
     - run: npx tsc --noEmit
     - run: npm run test -- --grep-invert yarn-berry
-    - run: cd $HOME && yarn set version stable
-      shell: bash
+    - run: corepack enable
+    - run: corepack prepare yarn@4 --activate
     - run: npm run test -- --grep yarn-berry
