@@ -28,7 +28,7 @@ const validGitignore = [
 ].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
-  test.skip(packageManager === 'yarn');
+  test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
   const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
@@ -44,7 +44,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
     expect(stdout).toContain('Initializing NPM project (npm init -y)…');
     expect(stdout).toContain('Installing Playwright Test (npm install --save-dev @playwright/test)…');
     expect(stdout).toContain('Installing Types (npm install --save-dev @types/node)…');
-  } else if (packageManager === 'yarn') {
+  } else if (packageManager === 'yarn-classic') {
     expect(stdout).toContain('Initializing Yarn project (yarn init -y)…');
     expect(stdout).toContain('Installing Playwright Test (yarn add --dev @playwright/test)…');
     expect(stdout).toContain('Installing Types (yarn add --dev @types/node)…');
@@ -57,7 +57,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 });
 
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
-  test.skip(packageManager === 'yarn');
+  test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
@@ -115,7 +115,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 });
 
 test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
-  test.skip(packageManager !== 'npx yarn@1');
+  test.skip(packageManager !== 'yarn-classic');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
@@ -128,9 +128,9 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
   for (const pkg of ['foo', 'bar']) {
     const packageDir = path.join(dir, 'packages', pkg);
     fs.mkdirSync(packageDir, { recursive: true });
-    childProcess.execSync(`${packageManager} init -y`, { cwd: packageDir });
+    childProcess.execSync(`yarn init -y`, { cwd: packageDir });
   }
-  childProcess.execSync(`${packageManager} install`, { cwd: dir });
+  childProcess.execSync(`yarn install`, { cwd: dir });
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
@@ -167,4 +167,14 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
   expect(workflowContent).toContain('run: npm i');
   expect(workflowContent).not.toContain('run: npm ci');
+});
+
+test('is proper yarn classic', async ({ packageManager }) => {
+  test.skip(packageManager !== 'yarn-classic');
+  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8' })).toMatch(/^1\./);
+});
+
+test('is proper yarn berry', async ({ packageManager }) => {
+  test.skip(packageManager !== 'yarn-berry');
+  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8' })).toMatch(/^4\./);
 });

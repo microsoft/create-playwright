@@ -35,13 +35,13 @@ export default defineConfig<TestFixtures>({
     {
       name: 'yarn-classic',
       use: {
-        packageManager: 'npx yarn@1'
+        packageManager: 'yarn-classic'
       }
     },
     {
-      name: 'yarn',
+      name: 'yarn-berry',
       use: {
-        packageManager: 'yarn'
+        packageManager: 'yarn-berry'
       }
     },
     {

@@ -20,7 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import type { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'npx yarn@1';
+export type PackageManager = 'npm' | 'pnpm' | 'yarn-classic' | 'yarn-berry';
 
 export type TestFixtures = {
   packageManager: PackageManager;
@@ -82,7 +82,7 @@ export const test = base.extend<TestFixtures>({
         cwd: dir,
         env: {
           ...process.env,
-          'npm_config_user_agent': packageManager === 'yarn' ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
+          'npm_config_user_agent': packageManager.startsWith('yarn') ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
           'TEST_OPTIONS': JSON.stringify(options),
         },
       });
@@ -94,7 +94,7 @@ export function assertLockFilesExist(dir: string, packageManager: PackageManager
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   if (packageManager === 'npm')
     expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
-  else if (packageManager === 'yarn')
+  else if (packageManager.startsWith('yarn'))
     expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
   else if (packageManager === 'pnpm')
     expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
@@ -104,10 +104,9 @@ export function packageManagerToNpxCommand(packageManager: PackageManager): stri
   switch (packageManager) {
     case 'npm':
       return 'npx';
-    case 'yarn':
+    case 'yarn-classic':
+    case 'yarn-berry':
       return 'yarn';
-    case 'npx yarn@1':
-      return 'npx yarn@1';
     case 'pnpm':
       return 'pnpm dlx';
   }
