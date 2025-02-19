@@ -25,6 +25,6 @@ jobs:
     - run: npx playwright install-deps
     - run: npm run build
     - run: npx tsc --noEmit
-    - run: npm run test -- --project=npm --project=pnpm --project=yarn-classic
+    - run: npm run test -- --grep-invert yarn-berry
     - run: yarn set version stable
-    - run: npm run test -- --project=yarn-berry
+    - run: npm run test -- --grep yarn-berry
