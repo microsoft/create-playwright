@@ -27,5 +27,5 @@ jobs:
     - run: npx tsc --noEmit
     - run: npm run test -- --grep-invert yarn-berry
     - run: yarn set version stable
-      working-directory: /home/runner/
+      working-directory: ../
     - run: npm run test -- --grep yarn-berry
