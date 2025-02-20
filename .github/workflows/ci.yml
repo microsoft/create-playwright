@@ -26,5 +26,14 @@ jobs:
     - run: npm run build
     - run: npx tsc --noEmit
     - run: npx playwright test --grep-invert yarn-berry
-    - run: yarn set version stable
+  build-berry:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: corepack enable
+    - run: corepack prepare yarn@stable --activate
+    - run: npm ci
+    - run: npx playwright install-deps
+    - run: npm run build
     - run: npx playwright test --grep yarn-berry
