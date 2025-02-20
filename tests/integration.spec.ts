@@ -130,7 +130,7 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
     fs.mkdirSync(packageDir, { recursive: true });
     childProcess.execSync(`yarn init -y`, { cwd: packageDir });
   }
-  childProcess.execSync(`yarn install`, { cwd: dir, stdio: 'inherit' });
+  childProcess.execSync(`yarn install`, { cwd: dir, stdio: 'inherit', env: { YARN_ENABLE_HARDENED_MODE: '0' } });
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
