@@ -27,7 +27,11 @@ jobs:
     - run: npx tsc --noEmit
     - run: npx playwright test --grep-invert yarn-berry
   build-berry:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
