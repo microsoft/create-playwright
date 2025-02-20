@@ -171,12 +171,12 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
 
 test('is proper yarn classic', async ({ packageManager }) => {
   test.skip(packageManager !== 'yarn-classic');
-  fs.mkdirSync(test.info().outputDir)
+  fs.mkdirSync(test.info().outputDir);
   expect(childProcess.execSync('yarn --version', { encoding: 'utf-8', cwd: test.info().outputDir })).toMatch(/^1\./);
 });
 
 test('is proper yarn berry', async ({ packageManager }) => {
   test.skip(packageManager !== 'yarn-berry');
-  fs.mkdirSync(test.info().outputDir)
+  fs.mkdirSync(test.info().outputDir);
   expect(childProcess.execSync('yarn --version', { encoding: 'utf-8', cwd: test.info().outputDir })).toMatch(/^4\./);
 });
