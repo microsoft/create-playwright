@@ -22,6 +22,13 @@ import type { PromptOptions } from '../src/generator';
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn-classic' | 'yarn-berry';
 
+const userAgents: Record<PackageManager, string | undefined> = {
+  'yarn-classic': 'yarn/1.22.10',
+  'yarn-berry': 'yarn/4.0.0',
+  pnpm: 'pnpm/0.0.0',
+  npm: undefined,
+};
+
 export type TestFixtures = {
   packageManager: PackageManager;
   dir: string;
@@ -82,7 +89,7 @@ export const test = base.extend<TestFixtures>({
         cwd: dir,
         env: {
           ...process.env,
-          'npm_config_user_agent': packageManager.startsWith('yarn') ? 'yarn' : packageManager === 'pnpm' ? 'pnpm/0.0.0' : undefined,
+          npm_config_user_agent: userAgents[packageManager],
           'TEST_OPTIONS': JSON.stringify(options),
         },
       });
