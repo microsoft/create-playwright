@@ -25,7 +25,7 @@ jobs:
     - run: npx playwright install-deps
     - run: npm run build
     - run: npx tsc --noEmit
-    - run: npx playwright test -- --grep-invert yarn-berry
+    - run: npx playwright test --grep-invert yarn-berry
     - run: corepack enable
     - run: corepack prepare yarn@4 --activate
-    - run: npx playwright test -- --grep yarn-berry
+    - run: npx playwright test --grep yarn-berry
