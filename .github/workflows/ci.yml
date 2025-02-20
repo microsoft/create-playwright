@@ -26,7 +26,7 @@ jobs:
     - run: npm run build
     - run: npx tsc --noEmit
     - run: npx playwright test --grep-invert yarn-berry
-    - run: corepacke enable && corepack prepare yarn@stable --activate
+    - run: corepack enable && corepack prepare yarn@stable --activate
       if: ${{ matrix.os != 'windows-latest' }}
     - run: npx playwright test --grep yarn-berry
       if: ${{ matrix.os != 'windows-latest' }}
