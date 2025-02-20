@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
     - run: npx playwright install-deps
     - run: npm run build
     - run: npx tsc --noEmit
-    - run: npm run test -- --grep-invert yarn-berry
+    - run: npx playwright test -- --grep-invert yarn-berry
     - run: corepack enable
     - run: corepack prepare yarn@4 --activate
-    - run: npm run test -- --grep yarn-berry
+    - run: npx playwright test -- --grep yarn-berry
