@@ -2,7 +2,10 @@
   "name": "create-playwright",
   "version": "1.17.136",
   "description": "Getting started with writing end-to-end tests with Playwright.",
-  "repository": "github:Microsoft/create-playwright",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsoft/create-playwright.git"
+  },
   "homepage": "https://playwright.dev",
   "author": {
     "name": "Microsoft Corporation"
