@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import childProcess from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from './baseFixtures';
@@ -97,12 +96,12 @@ test('should generate be able to run JS examples successfully', async ({ run, di
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
-test('should generate in the root of pnpm workspace', async ({ run, packageManager }) => {
+test('should generate in the root of pnpm workspace', async ({ run, packageManager, exec }) => {
   test.skip(packageManager !== 'pnpm');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
-  childProcess.execSync('pnpm init', { cwd: dir });
+  await exec('pnpm', ['init'], { cwd: dir });
   fs.writeFileSync(path.join(dir, 'pnpm-workspace.yaml'), `packages:\n  - 'packages/*'\n`);
   fs.mkdirSync(path.join(dir, 'packages', 'foo'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'packages', 'foo', 'package.json'), `{}`);
@@ -114,7 +113,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
 });
 
-test('should generate in the root of yarn workspaces', async ({ run, packageManager }) => {
+test('should generate in the root of yarn workspaces', async ({ run, packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-berry' && packageManager !== 'yarn-classic');
 
   const dir = test.info().outputDir;
@@ -128,9 +127,9 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
   for (const pkg of ['foo', 'bar']) {
     const packageDir = path.join(dir, 'packages', pkg);
     fs.mkdirSync(packageDir, { recursive: true });
-    childProcess.execSync(`yarn init -y`, { cwd: packageDir });
+    await exec(`yarn`, ['init', '-y'], { cwd: packageDir });
   }
-  childProcess.execSync(`yarn install`, { cwd: dir, stdio: 'inherit', env: { ...process.env, YARN_ENABLE_IMMUTABLE_INSTALLS: 'false', YARN_ENABLE_HARDENED_MODE: '0' } });
+  await exec(`yarn`, ['install'], { cwd: dir, env: { ...process.env, YARN_ENABLE_IMMUTABLE_INSTALLS: 'false', YARN_ENABLE_HARDENED_MODE: '0' } });
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
@@ -170,14 +169,14 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   expect(workflowContent).not.toContain('run: npm ci');
 });
 
-test('is proper yarn classic', async ({ packageManager }) => {
+test('is proper yarn classic', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-classic');
-  fs.mkdirSync(test.info().outputDir);
-  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8', cwd: test.info().outputDir })).toMatch(/^1\./);
+  const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
+  expect(result.stdout).toMatch(/^1\./);
 });
 
-test('is proper yarn berry', async ({ packageManager }) => {
+test('is proper yarn berry', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-berry');
-  fs.mkdirSync(test.info().outputDir);
-  expect(childProcess.execSync('yarn --version', { encoding: 'utf-8', cwd: test.info().outputDir })).toMatch(/^4\./);
+  const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
+  expect(result.stdout).toMatch(/^4\./);
 });
