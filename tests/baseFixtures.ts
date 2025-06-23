@@ -85,7 +85,6 @@ export const test = base.extend<TestFixtures>({
   run: async ({ packageManager, exec, dir }, use) => {
     await use(async (parameters: string[], options: PromptOptions): Promise<SpawnResult> => {
       return await exec('node', [path.join(__dirname, '..'), ...parameters], {
-        shell: true,
         cwd: dir,
         env: {
           ...process.env,
