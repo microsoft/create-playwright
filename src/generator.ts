@@ -278,7 +278,8 @@ export class Generator {
       '/test-results/': /^\/?test-results\/?$/m,
       '/playwright-report/': /^\/playwright-report\/?$/m,
       '/blob-report/': /^\/blob-report\/?$/m,
-      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m
+      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m,
+      '/playwright/.auth/': /^\/playwright\/\.auth\/?$/m,
     };
     Object.entries(valuesToAdd).forEach(([value, regex]) => {
       if (!gitIgnore.match(regex)) {
