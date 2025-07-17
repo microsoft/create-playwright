@@ -24,6 +24,7 @@ const validGitignore = [
   '/playwright-report/',
   '/blob-report/',
   '/playwright/.cache/',
+  '/playwright/.auth/'
 ].join('\n');
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
