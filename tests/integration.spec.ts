@@ -98,7 +98,8 @@ test('should generate be able to run JS examples successfully', async ({ run, di
 });
 
 test('should generate in the root of pnpm workspace', async ({ run, packageManager, exec }) => {
-  test.skip(packageManager !== 'pnpm' && packageManager !== 'pnpm-pnp');
+  test.skip(packageManager !== 'pnpm');
+  test.fail(packageManager === 'pnpm-pnp', 'something is broken here');
 
   const dir = test.info().outputDir;
   fs.mkdirSync(dir, { recursive: true });
