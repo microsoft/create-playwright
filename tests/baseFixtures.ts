@@ -20,12 +20,13 @@ import path from 'path';
 import fs from 'fs';
 import type { PromptOptions } from '../src/generator';
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn-classic' | 'yarn-berry';
+export type PackageManager = 'npm' | 'pnpm' | 'pnpm-pnp' | 'yarn-classic' | 'yarn-berry';
 
 const userAgents: Record<PackageManager, string | undefined> = {
   'yarn-classic': 'yarn/1.22.10',
   'yarn-berry': 'yarn/4.0.0',
   pnpm: 'pnpm/0.0.0',
+  'pnpm-pnp': 'pnpm/0.0.0',
   npm: undefined,
 };
 
@@ -59,9 +60,11 @@ function spawnAsync(cmd: string, args: string[], options?: SpawnOptionsWithoutSt
 
 export const test = base.extend<TestFixtures>({
   packageManager: ['npm', { option: true }],
-  dir: async ({}, use, testInfo) => {
+  dir: async ({ packageManager }, use, testInfo) => {
     const dir = testInfo.outputDir;
     fs.mkdirSync(dir, { recursive: true });
+    if (packageManager === 'pnpm-pnp')
+      fs.writeFileSync(path.join(dir, '.npmrc'), 'node-linker=pnp');
     await use(dir);
   },
   exec: async ({ dir }, use, testInfo) => {
@@ -102,7 +105,7 @@ export function assertLockFilesExist(dir: string, packageManager: PackageManager
     expect(fs.existsSync(path.join(dir, 'package-lock.json'))).toBeTruthy();
   else if (packageManager.startsWith('yarn'))
     expect(fs.existsSync(path.join(dir, 'yarn.lock'))).toBeTruthy();
-  else if (packageManager === 'pnpm')
+  else if (packageManager.startsWith('pnpm'))
     expect(fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))).toBeTruthy();
 }
 
@@ -114,6 +117,7 @@ export function packageManagerToNpxCommand(packageManager: PackageManager): stri
     case 'yarn-berry':
       return 'yarn';
     case 'pnpm':
+    case 'pnpm-pnp':
       return 'pnpm dlx';
   }
 }

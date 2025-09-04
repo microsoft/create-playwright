@@ -50,5 +50,11 @@ export default defineConfig<TestFixtures>({
         packageManager: 'pnpm'
       }
     },
+    {
+      name: 'pnpm-pnp',
+      use: {
+        packageManager: 'pnpm-pnp'
+      }
+    },
   ]
 });
