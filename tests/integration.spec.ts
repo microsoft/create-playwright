@@ -98,7 +98,11 @@ test('should generate be able to run JS examples successfully', async ({ run, di
 });
 
 test('should generate in the root of pnpm workspace', async ({ run, packageManager, exec }) => {
-  test.skip(packageManager !== 'pnpm');
+  test.skip(packageManager !== 'pnpm' && packageManager !== 'pnpm-pnp');
+
+  // not sure what's going wrong. removing pnpm-workspace.yaml would help, as discussed in https://github.com/pnpm/pnpm/issues/4129#issuecomment-2830362402.
+  // but I don't understand PNPM enough to know whether that make the test meaningless.
+  // disabling for now.
   test.fail(packageManager === 'pnpm-pnp', 'something is broken here');
 
   const dir = test.info().outputDir;
