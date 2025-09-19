@@ -186,3 +186,24 @@ test('is proper yarn berry', async ({ packageManager, exec }) => {
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
   expect(result.stdout).toMatch(/^4\./);
 });
+
+test('should default GitHub Actions to true when accepting default', async ({ run, dir }) => {
+  // This tests the new default behavior - GitHub Actions should be created when user accepts the default
+  await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  
+  // Verify GitHub Actions workflow was created
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+  
+  // Verify the workflow file contains expected content
+  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  expect(workflowContent).toContain('name: Playwright Tests');
+  expect(workflowContent).toContain('npx playwright test');
+});
+
+test('should allow opting out of GitHub Actions despite default being true', async ({ run, dir }) => {
+  // This tests that users can still opt out even though the default is now true
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  
+  // Verify GitHub Actions workflow was NOT created when user opts out
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+});
