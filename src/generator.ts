@@ -129,7 +129,7 @@ export class Generator {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: !!this.options.gha,
+        initial: true,
         skip: !!this.options.gha,
       },
       {
