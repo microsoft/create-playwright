@@ -15,52 +15,45 @@
  */
 
 import path from 'path';
-import { Generator } from './generator';
+import { Command } from 'commander';
+import { CliOptions, Generator } from './generator';
 
-(async () => {
-  const argv = process.argv.slice(2);
-  const args = argv.filter(a => !a.startsWith('--'));
-  const options: { [key: string]: string[] } = {};
-  for (const token of argv.filter(a => a.startsWith('--'))) {
-    const match = token.match(/--([^=]+)(?:=(.*))?/);
-    if (!match)
-      continue;
-    const [, name, value] = match;
-    if (!name)
-      continue;
-    const oldValue = options[name];
-    if (oldValue && value)
-      oldValue.push(value);
-    else if (value)
-      options[name] = [value];
-    else
-      options[name] = [];
-  }
-  if (options.help) {
-    _printHelp();
-    process.exit(0);
-  }
-  const rootDir = path.resolve(process.cwd(), args[0] || '');
-  const generator = new Generator(rootDir, options);
-  await generator.run();
-})().catch(error => {
+const program = new Command();
+
+program
+  .name('create-playwright')
+  .description('Getting started with writing end-to-end tests with Playwright.')
+  .argument('[rootDir]', 'Target directory for the Playwright project', '.')
+  .option('--browser <browser...>', 'browsers to use in default config', ['chromium', 'firefox', 'webkit'])
+  .option('--no-browsers', 'do not download browsers (can be done manually via \'npx playwright install\')')
+  .option('--no-examples', 'do not create example test files')
+  .option('--install-deps', 'install dependencies')
+  .option('--next', 'install @next version of Playwright')
+  .option('--beta', 'install @beta version of Playwright')
+  .option('--ct', 'install Playwright Component testing')
+  .option('--quiet', 'do not ask for interactive input prompts')
+  .option('--gha', 'install GitHub Actions')
+  .option('--lang <language>', 'language to use (js, TypeScript)', 'TypeScript')
+  .action(async (rootDir, options) => {
+
+    const cliOptions: CliOptions = {
+      browser: options.browser,
+      noBrowsers: !options.browsers,
+      noExamples: !options.examples,
+      installDeps: options.installDeps,
+      next: options.next,
+      beta: options.beta,
+      ct: options.ct,
+      quiet: options.quiet,
+      gha: options.gha,
+      lang: options.lang,
+    };
+    const resolvedRootDir = path.resolve(process.cwd(), rootDir || '.');
+    const generator = new Generator(resolvedRootDir, cliOptions);
+    await generator.run();
+  });
+
+program.parseAsync().catch(error => {
   console.error(error);
   process.exit(1);
 });
-
-function _printHelp() {
-  console.log(`Usage: npx create-playwright@latest [options] [rootDir]
-    Available options are:
-      --help: print this message
-      --browser=<name>: browsers to use in default config (default: 'chromium,firefox,webkit')
-      --no-browsers: do not download browsers (can be done manually via 'npx playwright install')
-      --no-examples: do not create example test files
-      --install-deps: install dependencies (default: false)
-      --next: install @next version of Playwright
-      --beta: install @beta version of Playwright
-      --ct: install Playwright Component testing
-      --quiet: do not ask for interactive input prompts
-      --gha: install GitHub Actions
-      --lang=<js>: language to use (default: 'TypeScript'. Potential values: 'js', 'TypeScript')
-    `);
-}

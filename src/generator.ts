@@ -34,21 +34,25 @@ export type PromptOptions = {
 
 const assetsDir = path.join(__dirname, '..', 'assets');
 
-type CliArgumentKey = 'browser'
-  | 'no-browsers'
-  | 'no-examples'
-  | 'next'
-  | 'beta'
-  | 'ct'
-  | 'quiet'
-  | 'gha'
-  | 'install-deps'
-  | 'lang';
+export type CliOptions = {
+  lang: string;
+  browser: string[];
+  noBrowsers?: boolean;
+  noExamples?: boolean;
+  installDeps?: boolean;
+  next?: boolean;
+  beta?: boolean;
+  ct?: boolean;
+  quiet?: boolean;
+  gha?: boolean;
+};
 
 export class Generator {
+  private readonly options: CliOptions
   private packageManager: PackageManager;
 
-  constructor(private readonly rootDir: string, private readonly options: Partial<Record<CliArgumentKey, string[]>>) {
+  constructor(private readonly rootDir: string, options: CliOptions) {
+    this.options = options;
     if (!fs.existsSync(rootDir))
       fs.mkdirSync(rootDir);
     this.packageManager = determinePackageManager(rootDir);
@@ -84,11 +88,11 @@ export class Generator {
     if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
-        language: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
-        installPlaywrightDependencies: !!this.options['install-deps'],
+        language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
+        installPlaywrightDependencies: !!this.options.installDeps,
         testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
         framework: undefined,
-        installPlaywrightBrowsers: !this.options['no-browsers'],
+        installPlaywrightBrowsers: !this.options.noBrowsers,
       };
     }
 
@@ -103,7 +107,7 @@ export class Generator {
           { name: 'TypeScript' },
           { name: 'JavaScript' },
         ],
-        initial: this.options.lang?.[0] === 'js' ? 'JavaScript' : 'TypeScript',
+        initial: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
         skip: !!this.options.lang,
       },
       this.options.ct && {
@@ -136,8 +140,8 @@ export class Generator {
         type: 'confirm',
         name: 'installPlaywrightBrowsers',
         message: `Install Playwright browsers (can be done manually via '${this.packageManager.npx('playwright', 'install')}')?`,
-        initial: !this.options['no-browsers'] || !!this.options.browser,
-        skip: !!this.options['no-browsers'] || !!this.options.browser,
+        initial: !this.options.noBrowsers || !!this.options.browser,
+        skip: !!this.options.noBrowsers || !!this.options.browser,
       },
       // Avoid installing dependencies on Windows (vast majority does not run create-playwright on Windows)
       // Avoid installing dependencies on Mac (there are no dependencies)
@@ -145,8 +149,8 @@ export class Generator {
         type: 'confirm',
         name: 'installPlaywrightDependencies',
         message: `Install Playwright operating system dependencies (requires sudo / root - can be done manually via 'sudo ${this.packageManager.npx('playwright', 'install-deps')}')?`,
-        initial: !!this.options['install-deps'],
-        skip: !!this.options['install-deps'],
+        initial: !!this.options.installDeps,
+        skip: !!this.options.installDeps,
       },
     ];
     const result = await prompt<PromptOptions>(
@@ -170,7 +174,7 @@ export class Generator {
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
     let ctPackageName;
-    let installExamples = !this.options['no-examples'];
+    let installExamples = !this.options.noExamples;
     if (answers.framework) {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
       installExamples = false;
