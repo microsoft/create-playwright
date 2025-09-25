@@ -20,6 +20,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "esbuild --bundle src/cli.ts --outfile=lib/index.js --platform=node --target=ES2019",
+    "clean": "rm -rf lib",
     "watch": "npm run build -- --watch",
     "test": "playwright test",
     "prepublish": "npm run build"
@@ -29,6 +30,7 @@
     "@types/ini": "^4.1.1",
     "@types/node": "^18.19.33",
     "ansi-colors": "^4.1.1",
+    "commander": "^14.0.1",
     "enquirer": "^2.3.6",
     "esbuild": "^0.25.0",
     "ini": "^4.1.3",
