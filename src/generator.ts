@@ -45,6 +45,7 @@ export type CliOptions = {
   ct?: boolean;
   quiet?: boolean;
   gha?: boolean;
+  agents?: string;
 };
 
 export class Generator {
@@ -175,6 +176,7 @@ export class Generator {
 
     let ctPackageName;
     let installExamples = !this.options.noExamples;
+
     if (answers.framework) {
       ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
       installExamples = false;
@@ -186,6 +188,11 @@ export class Generator {
       files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
         testDir: answers.testDir || '',
       }, sections));
+    }
+
+    if (this.options.agents) {
+      installExamples = false;
+      files.set(path.join(answers.testDir, `seed.spec.${fileExtension}`), this._readAsset(`seed.spec.${fileExtension}`));
     }
 
     if (answers.installGitHubActions) {
@@ -254,6 +261,14 @@ export class Generator {
       commands.push({
         name: 'Downloading browsers',
         command: this.packageManager.npx('playwright', 'install') + (answers.installPlaywrightDependencies ? ' --with-deps' : '') + browsersSuffix,
+        phase: 'post',
+      });
+    }
+
+    if (this.options.agents) {
+      commands.push({
+        name: 'Initializing Playwright agents',
+        command: this.packageManager.npx('playwright', `init-agents --loop=${this.options.agents}`),
         phase: 'post',
       });
     }

@@ -186,3 +186,43 @@ test('is proper yarn berry', async ({ packageManager, exec }) => {
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
   expect(result.stdout).toMatch(/^4\./);
 });
+
+test('should create seed.spec.ts file when --agents=vscode is specified', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+
+  await run(['--agents=vscode', '--next'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+
+  expect(fs.existsSync(path.join(dir, 'tests/seed.spec.ts'))).toBeTruthy();
+
+  const seedSpecContent = fs.readFileSync(path.join(dir, 'tests/seed.spec.ts'), 'utf8');
+  expect(seedSpecContent).toContain('test(\'seed\', async ({ page }) => {');
+  expect(seedSpecContent).toContain('// generate code here.');
+
+  // Verify that example.spec.ts is NOT created when agents option is used
+  expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeFalsy();
+
+  // Verify other expected files are still created
+  expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});
+
+test('should create seed.spec.js file when --agents=vscode is specified with JavaScript', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+
+  await run(['--agents=vscode', '--next'], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+
+  // Verify that seed.spec.js file is still created before the command fails
+  expect(fs.existsSync(path.join(dir, 'tests/seed.spec.js'))).toBeTruthy();
+
+  // Verify that the seed.spec.js file has the expected content
+  const seedSpecContent = fs.readFileSync(path.join(dir, 'tests/seed.spec.js'), 'utf8');
+  expect(seedSpecContent).toContain('test(\'seed\', async ({ page }) => {');
+  expect(seedSpecContent).toContain('// generate code here.');
+
+  // Verify that example.spec.js is NOT created when agents option is used
+  expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeFalsy();
+
+  // Verify other expected files are still created
+  expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'playwright.config.js'))).toBeTruthy();
+});
