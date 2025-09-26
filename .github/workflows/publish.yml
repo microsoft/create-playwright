@@ -1,5 +1,6 @@
 name: Publish NPM
 on:
+  workflow_dispatch:
   release:
     types: [published]
 jobs:
@@ -18,4 +19,11 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
       - run: npm ci
-      - run: npm publish
+      - name: Publish release to NPM
+        if: github.event_name == 'release'
+        run: npm publish
+      - name: Publish @next to NPM
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          node utils/update_canary_version.js
+      # npm publish --tag=next
