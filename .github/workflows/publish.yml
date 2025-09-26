@@ -26,4 +26,4 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           node utils/update_canary_version.js
-      # npm publish --tag=next
+          npm publish --tag=next
