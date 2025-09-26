@@ -206,10 +206,8 @@ export class Generator {
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
-    if (installExamples) {
+    if (installExamples)
       files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
-      files.set(path.join('tests-examples', `demo-todo-app.spec.${fileExtension}`), this._readAsset(`demo-todo-app.spec.${fileExtension}`));
-    }
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
       commands.push({
@@ -338,7 +336,6 @@ export class Generator {
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
     const exampleSpecPath = path.join(answers.testDir, `example.spec.${languageToFileExtension(answers.language)}`);
-    const demoTodoAppSpecPath = path.join('tests-examples', `demo-todo-app.spec.${languageToFileExtension(answers.language)}`);
     const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
     console.log(`
 Inside that directory, you can run several commands:
@@ -367,7 +364,6 @@ We suggest that you begin by typing:
 
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
-  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, demoTodoAppSpecPath) : demoTodoAppSpecPath} - Demo Todo App end-to-end tests
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
 
 Visit https://playwright.dev/docs/intro for more information. ✨
