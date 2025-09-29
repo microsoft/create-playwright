@@ -33,9 +33,9 @@ program
   .option('--ct', 'install Playwright Component testing')
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
-  .option('--agents <loop>', 'initialize repository agents for the specified agentic loop provider (vscode, claude or opencode)')
   .option('--lang <language>', 'language to use (js, TypeScript)', 'TypeScript')
   .action(async (rootDir, options) => {
+
     const cliOptions: CliOptions = {
       browser: options.browser,
       noBrowsers: !options.browsers,
@@ -46,7 +46,6 @@ program
       ct: options.ct,
       quiet: options.quiet,
       gha: options.gha,
-      agents: options.agents,
       lang: options.lang,
     };
     const resolvedRootDir = path.resolve(process.cwd(), rootDir || '.');
