@@ -35,8 +35,8 @@ export type PromptOptions = {
 const assetsDir = path.join(__dirname, '..', 'assets');
 
 export type CliOptions = {
-  lang: string;
-  browser: string[];
+  lang?: string;
+  browser?: string[];
   noBrowsers?: boolean;
   noExamples?: boolean;
   installDeps?: boolean;
