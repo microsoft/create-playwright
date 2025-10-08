@@ -24,7 +24,7 @@ program
   .name('create-playwright')
   .description('Getting started with writing end-to-end tests with Playwright.')
   .argument('[rootDir]', 'Target directory for the Playwright project', '.')
-  .option('--browser <browser...>', 'browsers to use in default config', ['chromium', 'firefox', 'webkit'])
+  .option('--browser <browser...>', `browsers to use in default config (default: 'chromium,firefox,webkit')`)
   .option('--no-browsers', 'do not download browsers (can be done manually via \'npx playwright install\')')
   .option('--no-examples', 'do not create example test files')
   .option('--install-deps', 'install dependencies')
@@ -33,7 +33,7 @@ program
   .option('--ct', 'install Playwright Component testing')
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
-  .option('--lang <language>', 'language to use (js, TypeScript)', 'TypeScript')
+  .option('--lang <language>', 'language to use (js, TypeScript)')
   .action(async (rootDir, options) => {
 
     const cliOptions: CliOptions = {
