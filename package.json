@@ -1,6 +1,6 @@
 {
   "name": "create-playwright",
-  "version": "1.17.139",
+  "version": "1.17.140",
   "description": "Getting started with writing end-to-end tests with Playwright.",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.1",
+    "@playwright/test": "^1.59.0-alpha-1769819922000",
     "@types/ini": "^4.1.1",
     "@types/node": "^18.19.33",
     "ansi-colors": "^4.1.1",

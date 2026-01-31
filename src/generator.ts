@@ -256,6 +256,9 @@ export class Generator {
       });
     }
 
+    const skillContent = this._readAsset('playwright-skill.md');
+    files.set('.claude/skills/playwright/SKILL.md', skillContent);
+
     return { files, commands };
   }
 
