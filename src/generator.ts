@@ -67,7 +67,7 @@ export class Generator {
       return acc;
     }, [[] as Command[], [] as Command[]]);
     executeCommands(this.rootDir, preCommands);
-    await createFiles(this.rootDir, files);
+    await createFiles(this.rootDir, files, false, !!this.options.quiet);
     this._patchGitIgnore();
     await this._patchPackageJSON(answers);
     executeCommands(this.rootDir, postCommands);
@@ -316,7 +316,7 @@ export class Generator {
 
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
-    await createFiles(this.rootDir, files, true);
+    await createFiles(this.rootDir, files, true, false);
   }
 
   private _printEpilogue(answers: PromptOptions) {
