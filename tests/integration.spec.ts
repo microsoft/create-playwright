@@ -175,6 +175,10 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   expect(workflowContent).not.toContain('run: npm ci');
 });
 
+test('should require --quiet for non-interactive terminals', async ({ exec }) => {
+  await expect(exec('node', [path.join(__dirname, '..')])).rejects.toThrow('Non-interactive terminal detected');
+});
+
 test('is proper yarn classic', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-classic');
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
