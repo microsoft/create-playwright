@@ -34,6 +34,7 @@ program
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
   .option('--lang <language>', 'language to use (js, TypeScript)')
+  .option('--test-dir <directory>', 'directory for test files (default: "tests" if it does not exist, otherwise "e2e")')
   .action(async (rootDir, options) => {
 
     const cliOptions: CliOptions = {
@@ -47,6 +48,7 @@ program
       quiet: options.quiet,
       gha: options.gha,
       lang: options.lang,
+      testDir: options.testDir,
     };
     const resolvedRootDir = path.resolve(process.cwd(), rootDir || '.');
     const generator = new Generator(resolvedRootDir, cliOptions);

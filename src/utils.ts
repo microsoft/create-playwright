@@ -37,10 +37,20 @@ export function executeCommands(cwd: string, commands: Command[]) {
   }
 }
 
-export async function createFiles(rootDir: string, files: Map<string, string>, force: boolean = false) {
+export async function createFiles(rootDir: string, files: Map<string, string>, force: boolean, quiet: boolean) {
+  const existingFiles = [...files.keys()].filter(f => fs.existsSync(path.join(rootDir, f)));
+  if (quiet && !force && existingFiles.length) {
+    console.log('These files already exist:');
+    for (const f of existingFiles)
+      console.log(`  ${path.relative(process.cwd(), f)}`);
+    console.log('If you want to override them, run again with --force.');
+    process.exit(1);
+    return;
+  }
+
   for (const [relativeFilePath, value] of files) {
     const absoluteFilePath = path.join(rootDir, relativeFilePath);
-    if (fs.existsSync(absoluteFilePath) && !force) {
+    if (existingFiles.includes(absoluteFilePath) && !force) {
       const { override } = await prompt<{ override: boolean }>({
         type: 'confirm',
         name: 'override',
