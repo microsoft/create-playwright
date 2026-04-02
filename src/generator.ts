@@ -95,6 +95,10 @@ export class Generator {
         installPlaywrightBrowsers: !this.options.noBrowsers,
       };
     }
+    if (!process.stdin.isTTY) {
+      console.error('Non-interactive terminal detected. See --help for options, then run again with --quiet.');
+      process.exit(1);
+    }
 
     const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
 

@@ -181,13 +181,14 @@ test('should not prompt and skip existing files in --quiet mode', async ({ run, 
   const originalConfig = fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8');
 
   // Second run: use --quiet, existing files should be skipped without prompting
-  const { stdout, code } = await run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
-  expect(stdout).toContain('These files already exist:');
-  expect(stdout).toContain('run again with --force');
-  expect(code).toBe(1);
-
+  await expect(run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false })).rejects.toThrowError("run again with --force");
+  
   // Verify the existing file was not overwritten
   expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe(originalConfig);
+});
+
+test('should require --quiet for non-interactive terminals', async ({ exec }) => {
+  await expect(exec('node', [path.join(__dirname, '..')])).rejects.toThrow('Non-interactive terminal detected');
 });
 
 test('is proper yarn classic', async ({ packageManager, exec }) => {
