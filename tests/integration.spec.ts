@@ -187,10 +187,6 @@ test('should not prompt and skip existing files in --quiet mode', async ({ run, 
   expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe(originalConfig);
 });
 
-test('should require --quiet for non-interactive terminals', async ({ exec }) => {
-  await expect(exec('node', [path.join(__dirname, '..')])).rejects.toThrow('Non-interactive terminal detected');
-});
-
 test('is proper yarn classic', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-classic');
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });

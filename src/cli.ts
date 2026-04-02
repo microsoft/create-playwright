@@ -34,7 +34,7 @@ program
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
   .option('--lang <language>', 'language to use (js, TypeScript)')
-  .option('--test-dir <directory>', 'directory for test files (default: "tests" if unused, otherwise "e2e")')
+  .option('--test-dir <directory>', 'directory for test files (default: "tests" if it does not exist, otherwise "e2e")')
   .action(async (rootDir, options) => {
 
     const cliOptions: CliOptions = {
