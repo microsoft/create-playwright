@@ -45,6 +45,7 @@ export type CliOptions = {
   ct?: boolean;
   quiet?: boolean;
   gha?: boolean;
+  testDir?: string;
 };
 
 export class Generator {
@@ -85,12 +86,15 @@ export class Generator {
   private async _askQuestions(): Promise<PromptOptions> {
     if (process.env.TEST_OPTIONS)
       return JSON.parse(process.env.TEST_OPTIONS);
+
+    const testDir = this.options.testDir || (fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests');
+
     if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
         language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options.installDeps,
-        testDir: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        testDir,
         framework: undefined,
         installPlaywrightBrowsers: !this.options.noBrowsers,
       };
@@ -131,7 +135,8 @@ export class Generator {
         type: 'text',
         name: 'testDir',
         message: 'Where to put your end-to-end tests?',
-        initial: fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests',
+        initial: testDir,
+        skip: !!this.options.testDir,
       },
       !this.options.ct && {
         type: 'confirm',
