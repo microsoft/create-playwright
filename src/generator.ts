@@ -178,6 +178,9 @@ export class Generator {
     for (const browserName of ['chromium', 'firefox', 'webkit'])
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
+    if (answers.language === 'TypeScript')
+      files.set('tsconfig.json', this._readAsset('tsconfig.json'));
+
     let ctPackageName;
     let installExamples = !this.options.noExamples;
     if (answers.framework) {
