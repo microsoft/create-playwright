@@ -192,6 +192,30 @@ test('should not prompt and skip existing files in --quiet mode', async ({ run, 
   expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe(originalConfig);
 });
 
+test('should skip GHA prompt and install workflow when --gha is passed', async ({ run, dir }) => {
+  await run(['--quiet', '--gha', '--lang', 'js', '--test-dir', 'specs', '--no-browsers']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
+test('should skip GHA prompt and not install workflow when --no-gha is passed', async ({ run, dir }) => {
+  await run(['--quiet', '--no-gha', '--lang', 'js', '--test-dir', 'specs', '--no-browsers']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
+test('should skip GHA prompt without --quiet when --no-gha is passed', async ({ run, dir }) => {
+  await run(['--no-gha', '--lang', 'js', '--test-dir', 'specs', '--no-browsers', '--install-deps']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
 test('is proper yarn classic', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-classic');
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
