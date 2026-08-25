@@ -77,7 +77,7 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
 });
 
-test('should generate be able to run TS examples successfully', async ({ run, dir, exec, packageManager }) => {
+test('should generate be able to run TS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
@@ -89,7 +89,7 @@ test('should generate be able to run TS examples successfully', async ({ run, di
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
-test('should generate be able to run JS examples successfully', async ({ run, dir, exec, packageManager }) => {
+test('should generate be able to run JS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();

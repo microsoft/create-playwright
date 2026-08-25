@@ -17,7 +17,7 @@ import { test, expect, assertLockFilesExist, packageManagerToNpxCommand } from '
 import path from 'path';
 import fs from 'fs';
 
-test('should be able to generate and run a CT React project', async ({ run, dir, exec, packageManager }) => {
+test('should be able to generate and run a CT React project', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
   await run(['--ct'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true, framework: 'react' });

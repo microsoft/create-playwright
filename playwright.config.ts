@@ -21,6 +21,7 @@ import os from 'node:os';
 
 export default defineConfig<TestFixtures>({
   timeout: 120 * 1000,
+  fullyParallel: true,
   testDir: './tests',
   reporter: 'list',
   outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'create-playwright-test-')), // place test dir outside to prevent influece from `yarn.lock` or `package.json` in repo
@@ -33,6 +34,8 @@ export default defineConfig<TestFixtures>({
     },
     {
       name: 'yarn-classic',
+      // Yarn classic does not support concurrent access to its global cache.
+      workers: 1,
       use: {
         packageManager: 'yarn-classic'
       }
