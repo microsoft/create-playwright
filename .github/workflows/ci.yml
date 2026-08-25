@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x]
+        node-version: [20.x, 22.x, 24.x, 26.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v4
@@ -26,6 +26,10 @@ jobs:
     - run: npm run build
     - run: npx tsc --noEmit
     - run: npx playwright test --grep-invert yarn-berry
-    - run: corepack enable
-    - run: corepack prepare yarn@4 --activate
-    - run: npx playwright test --grep yarn-berry
+    # Note: `yarn init` through corepack pins a stale yarn version into the generated project,
+    # so install yarn berry directly instead.
+    # Yarn PnP is broken on Node 22: its loader passes the CommonJS source to Node, and require.cache is undefined.
+    - if: matrix.node-version != '22.x'
+      run: npm i -g --force @yarnpkg/cli-dist@4
+    - if: matrix.node-version != '22.x'
+      run: npx playwright test --grep yarn-berry
