@@ -89,7 +89,7 @@ export class Generator {
 
     const testDir = this.options.testDir || (fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests');
 
-    if (this.options.quiet) {
+    if (this.options.quiet || !process.stdin.isTTY) {
       return {
         installGitHubActions: !!this.options.gha,
         language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
@@ -101,6 +101,7 @@ export class Generator {
     }
 
     const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
+    const cliOptions = this.options;
 
     const questions = [
       !isDefinitelyTS && {
@@ -111,8 +112,12 @@ export class Generator {
           { name: 'TypeScript' },
           { name: 'JavaScript' },
         ],
-        initial: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
-        skip: !!this.options.lang,
+        skip(this: { index: number }) {
+          if (!cliOptions.lang)
+            return false;
+          this.index = cliOptions.lang === 'js' ? 1 : 0;
+          return true;
+        },
       },
       this.options.ct && {
         type: 'select',
@@ -138,8 +143,8 @@ export class Generator {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: true,
-        skip: !!this.options.gha,
+        initial: this.options.gha ?? true,
+        skip: this.options.gha !== undefined,
       },
       {
         type: 'confirm',
