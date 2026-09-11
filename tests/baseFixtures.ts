@@ -33,7 +33,7 @@ const userAgents: Record<PackageManager, string | undefined> = {
 export type TestFixtures = {
   packageManager: PackageManager;
   dir: string;
-  run: (parameters: string[], options: PromptOptions) => Promise<SpawnResult>,
+  run: (parameters: string[], options?: PromptOptions) => Promise<SpawnResult>,
   exec: typeof spawnAsync,
 };
 
@@ -86,13 +86,13 @@ export const test = base.extend<TestFixtures>({
     });
   },
   run: async ({ packageManager, exec, dir }, use) => {
-    await use(async (parameters: string[], options: PromptOptions): Promise<SpawnResult> => {
+    await use(async (parameters: string[], options?: PromptOptions): Promise<SpawnResult> => {
       return await exec('node', [path.join(__dirname, '..'), ...parameters], {
         cwd: dir,
         env: {
           ...process.env,
           npm_config_user_agent: userAgents[packageManager],
-          'TEST_OPTIONS': JSON.stringify(options),
+          ...(options ? { TEST_OPTIONS: JSON.stringify(options) } : {}),
         },
       });
     });
