@@ -27,6 +27,25 @@ const validGitignore = [
   '/playwright/.auth/'
 ].join('\n');
 
+for (const language of ['TypeScript', 'JavaScript'] as const) {
+  for (const componentTesting of [false, true]) {
+    test(`should configure failures-only CI reporting for ${language} ${componentTesting ? 'component' : 'end-to-end'} tests`, async ({ run, dir }) => {
+      await run(componentTesting ? ['--ct'] : [], {
+        language,
+        testDir: 'tests',
+        installGitHubActions: false,
+        installPlaywrightDependencies: false,
+        installPlaywrightBrowsers: false,
+        framework: componentTesting ? 'react' : undefined,
+      });
+      const extension = language === 'TypeScript' ? 'ts' : 'js';
+      const file = componentTesting ? `playwright-ct.config.${extension}` : `playwright.config.${extension}`;
+      const config = fs.readFileSync(path.join(dir, file), 'utf8');
+      expect(config).toContain("reporter: process.env.CI ? [['list', { printOnlyFailures: true }], ['html']] : 'html',");
+    });
+  }
+}
+
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
