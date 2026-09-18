@@ -14,5 +14,5 @@
     "noUncheckedIndexedAccess": true
   },
   "compileOnSave": true,
-  "exclude": ["node_modules", "lib", "test-results", "assets/playwright-ct.config.ts", "assets/playwright-ct.config.js"]
+  "exclude": ["node_modules", "lib", "test-results"]
 }

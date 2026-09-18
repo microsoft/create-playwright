@@ -21,13 +21,12 @@ import { prompt } from 'enquirer';
 import ini from 'ini';
 
 import { type PackageManager, determinePackageManager } from './packageManager';
-import { Command, createFiles, executeCommands, executeTemplate, getFileExtensionCT, languageToFileExtension } from './utils';
+import { Command, createFiles, executeCommands, executeTemplate, languageToFileExtension } from './utils';
 
 export type PromptOptions = {
   testDir: string,
   installGitHubActions: boolean,
   language: 'JavaScript' | 'TypeScript',
-  framework?: 'react' | 'react17' | 'vue' | 'vue2' | 'svelte' | 'solid' | undefined,
   installPlaywrightDependencies: boolean,
   installPlaywrightBrowsers: boolean,
 };
@@ -42,7 +41,6 @@ export type CliOptions = {
   installDeps?: boolean;
   next?: boolean;
   beta?: boolean;
-  ct?: boolean;
   quiet?: boolean;
   gha?: boolean;
   testDir?: string;
@@ -70,12 +68,9 @@ export class Generator {
     executeCommands(this.rootDir, preCommands);
     await createFiles(this.rootDir, files, false, !!this.options.quiet);
     this._patchGitIgnore();
-    await this._patchPackageJSON(answers);
+    await this._patchPackageJSON();
     executeCommands(this.rootDir, postCommands);
-    if (answers.framework)
-      this._printEpilogueCT();
-    else
-      this._printEpilogue(answers);
+    this._printEpilogue(answers);
   }
 
   private _printPrologue() {
@@ -95,7 +90,6 @@ export class Generator {
         language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
         installPlaywrightDependencies: !!this.options.installDeps,
         testDir,
-        framework: undefined,
         installPlaywrightBrowsers: !this.options.noBrowsers,
       };
     }
@@ -114,27 +108,14 @@ export class Generator {
         initial: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
         skip: !!this.options.lang,
       },
-      this.options.ct && {
-        type: 'select',
-        name: 'framework',
-        message: 'Which framework do you use? (experimental)',
-        choices: [
-          { name: 'react', message: 'React 18' },
-          { name: 'react17', message: 'React 17' },
-          { name: 'vue', message: 'Vue 3' },
-          { name: 'vue2', message: 'Vue 2' },
-          { name: 'svelte', message: 'Svelte' },
-          { name: 'solid', message: 'Solid' },
-        ],
-      },
-      !this.options.ct && {
+      {
         type: 'text',
         name: 'testDir',
         message: 'Where to put your end-to-end tests?',
         initial: testDir,
         skip: !!this.options.testDir,
       },
-      !this.options.ct && {
+      {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
@@ -181,20 +162,9 @@ export class Generator {
     if (answers.language === 'TypeScript')
       files.set('tsconfig.json', this._readAsset('tsconfig.json'));
 
-    let ctPackageName;
-    let installExamples = !this.options.noExamples;
-    if (answers.framework) {
-      ctPackageName = `@playwright/experimental-ct-${answers.framework}`;
-      installExamples = false;
-      files.set(`playwright-ct.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright-ct.config.${fileExtension}`), {
-        testDir: answers.testDir || '',
-        ctPackageName,
-      }, sections));
-    } else {
-      files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
-        testDir: answers.testDir || '',
-      }, sections));
-    }
+    files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
+      testDir: answers.testDir || '',
+    }, sections));
 
     if (answers.installGitHubActions) {
       const npmrcExists = fs.existsSync(path.join(this.rootDir, '.npmrc'));
@@ -202,12 +172,12 @@ export class Generator {
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
         installDepsCommand: packageLockDisabled ? this.packageManager.i() : this.packageManager.ci(),
         installPlaywrightCommand: this.packageManager.npx('playwright', 'install --with-deps'),
-        runTestsCommand: answers.framework ? this.packageManager.run('test-ct') : this.packageManager.runPlaywrightTest(),
+        runTestsCommand: this.packageManager.runPlaywrightTest(),
       }, new Map());
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
-    if (installExamples)
+    if (!this.options.noExamples)
       files.set(path.join(answers.testDir, `example.spec.${fileExtension}`), this._readAsset(`example.spec.${fileExtension}`));
 
     if (!fs.existsSync(path.join(this.rootDir, 'package.json'))) {
@@ -224,28 +194,11 @@ export class Generator {
     if (this.options.next)
       packageTag = '@next';
 
-    if (!this.options.ct) {
-      commands.push({
-        name: 'Installing Playwright Test',
-        command: this.packageManager.installDevDependency(`@playwright/test${packageTag}`),
-        phase: 'pre',
-      });
-    }
-
-    if (this.options.ct) {
-      commands.push({
-        name: 'Installing Playwright Component Testing',
-        command: this.packageManager.installDevDependency(`${ctPackageName}${packageTag}`),
-        phase: 'pre',
-      });
-
-      const extension = getFileExtensionCT(answers.language, answers.framework);
-      const htmlTemplate = executeTemplate(this._readAsset(path.join('playwright', 'index.html')), { extension }, new Map());
-      files.set('playwright/index.html', htmlTemplate);
-
-      const jsTemplate = this._readAsset(path.join('playwright', 'index.js'));
-      files.set(`playwright/index.${extension}`, jsTemplate);
-    }
+    commands.push({
+      name: 'Installing Playwright Test',
+      command: this.packageManager.installDevDependency(`@playwright/test${packageTag}`),
+      phase: 'pre',
+    });
 
     if (!this._hasDependency('@types/node')) {
       commands.push({
@@ -291,7 +244,6 @@ export class Generator {
       '/test-results/': /^\/?test-results\/?$/m,
       '/playwright-report/': /^\/playwright-report\/?$/m,
       '/blob-report/': /^\/blob-report\/?$/m,
-      '/playwright/.cache/': /^\/playwright\/\.cache\/?$/m,
       '/playwright/.auth/': /^\/playwright\/\.auth\/?$/m,
     };
     Object.entries(valuesToAdd).forEach(([value, regex]) => {
@@ -311,16 +263,12 @@ export class Generator {
     return fs.readFileSync(path.isAbsolute(asset) ? asset : path.join(assetsDir, asset), 'utf-8');
   }
 
-  private async _patchPackageJSON(answers: PromptOptions) {
+  private async _patchPackageJSON() {
     const packageJSON = JSON.parse(fs.readFileSync(path.join(this.rootDir, 'package.json'), 'utf-8'));
     if (!packageJSON.scripts)
       packageJSON.scripts = {};
     if (packageJSON.scripts['test']?.includes('no test specified'))
       delete packageJSON.scripts['test'];
-
-    const extension = languageToFileExtension(answers.language);
-    if (answers.framework)
-      packageJSON.scripts['test-ct'] = `playwright test -c playwright-ct.config.${extension}`;
 
     const files = new Map<string, string>();
     files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
@@ -361,32 +309,6 @@ We suggest that you begin by typing:
 And check out the following files:
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
   - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
-
-Visit https://playwright.dev/docs/intro for more information. ✨
-
-Happy hacking! 🎭`);
-  }
-
-  private _printEpilogueCT() {
-    console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
-    console.log(`
-Inside that directory, you can run several commands:
-
-  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
-    Runs the component tests.
-
-  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --project=chromium`)}
-    Runs the tests only on Desktop Chrome.
-
-  ${colors.cyan(`${this.packageManager.cli} run test-ct App.test.ts`)}
-    Runs the tests in the specific file.
-
-  ${colors.cyan(`${this.packageManager.cli} run test-ct -- --debug`)}
-    Runs the tests in debug mode.
-
-We suggest that you begin by typing:
-
-  ${colors.cyan(`${this.packageManager.cli} run test-ct`)}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
