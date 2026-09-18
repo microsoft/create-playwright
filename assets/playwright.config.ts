@@ -22,7 +22,7 @@ export default defineConfig({
   /* Limit the whole test run, so that it fails with a report instead of hanging. */
   globalTimeout: 60 * 60 * 1000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI ? [['list', { printOnlyFailures: true }], ['html']] : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
