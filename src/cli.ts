@@ -30,7 +30,6 @@ program
   .option('--install-deps', 'install dependencies')
   .option('--next', 'install @next version of Playwright')
   .option('--beta', 'install @beta version of Playwright')
-  .option('--ct', 'install Playwright Component testing')
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
   .option('--lang <language>', 'language to use (js, TypeScript)')
@@ -44,7 +43,6 @@ program
       installDeps: options.installDeps,
       next: options.next,
       beta: options.beta,
-      ct: options.ct,
       quiet: options.quiet,
       gha: options.gha,
       lang: options.lang,
