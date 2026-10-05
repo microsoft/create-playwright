@@ -92,6 +92,7 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
 });
 
 test('should generate be able to run TS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
+  test.skip(packageManager === 'yarn-berry' && process.version.startsWith('v20.'), 'Playwright ESM loader cannot be loaded from the Yarn PnP cache on Node 20');
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
@@ -127,6 +128,7 @@ test('should not overwrite an existing tsconfig.json', async ({ run, dir }) => {
 });
 
 test('should generate be able to run JS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
+  test.skip(packageManager === 'yarn-berry' && process.version.startsWith('v20.'), 'Playwright ESM loader cannot be loaded from the Yarn PnP cache on Node 20');
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
