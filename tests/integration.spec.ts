@@ -103,6 +103,26 @@ test('should generate be able to run TS examples successfully', { lock: 'apt-get
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
+for (const testDir of ['tests', 'e2e']) {
+  test(`should generate a tsconfig.json that type-checks the generated files in ${testDir}`, async ({ run, dir, exec, packageManager }) => {
+    test.skip(packageManager !== 'npm' && packageManager !== 'pnpm', 'tsc cannot resolve modules with PnP');
+    await run([], { installGitHubActions: false, testDir, language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+    const tsc = require.resolve('typescript/bin/tsc');
+    const { stdout } = await exec('node', [tsc, '-p', '.', '--listFilesOnly']);
+    const files = stdout.split('\n').map(f => path.relative(dir, f.trim())).filter(f => f && !f.startsWith('node_modules') && !f.startsWith('..'));
+    expect(files.sort()).toEqual(['playwright.config.ts', path.join(testDir, 'example.spec.ts')].sort());
+    await exec('node', [tsc, '-p', '.']);
+  });
+}
+
+test('should not overwrite an existing tsconfig.json', async ({ run, dir }) => {
+  const tsconfig = JSON.stringify({ compilerOptions: { strict: true } });
+  fs.writeFileSync(path.join(dir, 'tsconfig.json'), tsconfig);
+  await run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  expect(fs.readFileSync(path.join(dir, 'tsconfig.json'), 'utf8')).toBe(tsconfig);
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});
+
 test('should generate be able to run JS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });

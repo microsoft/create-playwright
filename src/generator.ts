@@ -159,8 +159,11 @@ export class Generator {
     for (const browserName of ['chromium', 'firefox', 'webkit'])
       sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
 
-    if (answers.language === 'TypeScript')
-      files.set('tsconfig.json', this._readAsset('tsconfig.json'));
+    if (answers.language === 'TypeScript' && !fs.existsSync(path.join(this.rootDir, 'tsconfig.json'))) {
+      files.set('tsconfig.json', executeTemplate(this._readAsset('tsconfig.json'), {
+        testDir: answers.testDir || '.',
+      }, new Map()));
+    }
 
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
       testDir: answers.testDir || '',
