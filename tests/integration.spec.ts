@@ -103,6 +103,29 @@ test('should generate be able to run TS examples successfully', { lock: 'apt-get
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
+for (const testDir of ['tests', 'e2e']) {
+  test(`should generate a tsconfig.json that type-checks the generated files in ${testDir}`, async ({ run, exec, packageManager }) => {
+    test.skip(packageManager !== 'npm' && packageManager !== 'pnpm', 'tsc cannot resolve modules with PnP');
+    await run([], { installGitHubActions: false, testDir, language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+    const tsc = require.resolve('typescript/bin/tsc');
+    const { stdout } = await exec('node', [tsc, '-p', '.', '--listFilesOnly']);
+    // tsc prints absolute paths with forward slashes, resolved through symlinks (e.g. /private/var on macOS).
+    const files = stdout.split('\n').map(f => f.trim().replace(/\\/g, '/')).filter(f => f && !f.includes('/node_modules/'));
+    expect(files).toHaveLength(2);
+    expect(files.some(f => f.endsWith('/playwright.config.ts'))).toBeTruthy();
+    expect(files.some(f => f.endsWith(`/${testDir}/example.spec.ts`))).toBeTruthy();
+    await exec('node', [tsc, '-p', '.']);
+  });
+}
+
+test('should not overwrite an existing tsconfig.json', async ({ run, dir }) => {
+  const tsconfig = JSON.stringify({ compilerOptions: { strict: true } });
+  fs.writeFileSync(path.join(dir, 'tsconfig.json'), tsconfig);
+  await run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  expect(fs.readFileSync(path.join(dir, 'tsconfig.json'), 'utf8')).toBe(tsconfig);
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});
+
 test('should generate be able to run JS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
