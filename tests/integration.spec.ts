@@ -104,13 +104,16 @@ test('should generate be able to run TS examples successfully', { lock: 'apt-get
 });
 
 for (const testDir of ['tests', 'e2e']) {
-  test(`should generate a tsconfig.json that type-checks the generated files in ${testDir}`, async ({ run, dir, exec, packageManager }) => {
+  test(`should generate a tsconfig.json that type-checks the generated files in ${testDir}`, async ({ run, exec, packageManager }) => {
     test.skip(packageManager !== 'npm' && packageManager !== 'pnpm', 'tsc cannot resolve modules with PnP');
     await run([], { installGitHubActions: false, testDir, language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
     const tsc = require.resolve('typescript/bin/tsc');
     const { stdout } = await exec('node', [tsc, '-p', '.', '--listFilesOnly']);
-    const files = stdout.split('\n').map(f => path.relative(dir, f.trim())).filter(f => f && !f.startsWith('node_modules') && !f.startsWith('..'));
-    expect(files.sort()).toEqual(['playwright.config.ts', path.join(testDir, 'example.spec.ts')].sort());
+    // tsc prints absolute paths with forward slashes, resolved through symlinks (e.g. /private/var on macOS).
+    const files = stdout.split('\n').map(f => f.trim().replace(/\\/g, '/')).filter(f => f && !f.includes('/node_modules/'));
+    expect(files).toHaveLength(2);
+    expect(files.some(f => f.endsWith('/playwright.config.ts'))).toBeTruthy();
+    expect(files.some(f => f.endsWith(`/${testDir}/example.spec.ts`))).toBeTruthy();
     await exec('node', [tsc, '-p', '.']);
   });
 }
