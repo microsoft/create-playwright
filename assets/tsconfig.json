@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true
   },
-  "include": ["./src"],
+  "include": ["{{testDir}}", "playwright.config.ts"]
 }

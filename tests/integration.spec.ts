@@ -23,14 +23,29 @@ const validGitignore = [
   '/test-results/',
   '/playwright-report/',
   '/blob-report/',
-  '/playwright/.cache/',
   '/playwright/.auth/'
 ].join('\n');
+
+for (const language of ['TypeScript', 'JavaScript'] as const) {
+  test(`should configure failures-only CI reporting for ${language} end-to-end tests`, async ({ run, dir }) => {
+    await run([], {
+      language,
+      testDir: 'tests',
+      installGitHubActions: false,
+      installPlaywrightDependencies: false,
+      installPlaywrightBrowsers: false,
+    });
+    const extension = language === 'TypeScript' ? 'ts' : 'js';
+    const config = fs.readFileSync(path.join(dir, `playwright.config.${extension}`), 'utf8');
+    expect(config).toContain("reporter: process.env.CI ? [['list', { printOnlyFailures: true }], ['html']] : 'html',");
+  });
+}
 
 test('should generate a project in the current directory', async ({ run, dir, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   test.slow();
   const { stdout } = await run([], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   assertLockFilesExist(dir, packageManager);
@@ -59,6 +74,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  expect(fs.existsSync(path.join(dir, 'foobar/tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/package.json'))).toBeTruthy();
   assertLockFilesExist(path.join(dir, 'foobar'), packageManager);
@@ -75,9 +91,11 @@ test('should generate a project with JavaScript and without GHA', async ({ run, 
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
 });
 
-test('should generate be able to run TS examples successfully', async ({ run, dir, exec, packageManager }) => {
+test('should generate be able to run TS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
+  test.skip(packageManager === 'yarn-berry' && process.version.startsWith('v20.'), 'Playwright ESM loader cannot be loaded from the Yarn PnP cache on Node 20');
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
+  expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
@@ -86,7 +104,31 @@ test('should generate be able to run TS examples successfully', async ({ run, di
   await exec(packageManagerToNpxCommand(packageManager), ['playwright', 'test']);
 });
 
-test('should generate be able to run JS examples successfully', async ({ run, dir, exec, packageManager }) => {
+for (const testDir of ['tests', 'e2e']) {
+  test(`should generate a tsconfig.json that type-checks the generated files in ${testDir}`, async ({ run, exec, packageManager }) => {
+    test.skip(packageManager !== 'npm' && packageManager !== 'pnpm', 'tsc cannot resolve modules with PnP');
+    await run([], { installGitHubActions: false, testDir, language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+    const tsc = require.resolve('typescript/bin/tsc');
+    const { stdout } = await exec('node', [tsc, '-p', '.', '--listFilesOnly']);
+    // tsc prints absolute paths with forward slashes, resolved through symlinks (e.g. /private/var on macOS).
+    const files = stdout.split('\n').map(f => f.trim().replace(/\\/g, '/')).filter(f => f && !f.includes('/node_modules/'));
+    expect(files).toHaveLength(2);
+    expect(files.some(f => f.endsWith('/playwright.config.ts'))).toBeTruthy();
+    expect(files.some(f => f.endsWith(`/${testDir}/example.spec.ts`))).toBeTruthy();
+    await exec('node', [tsc, '-p', '.']);
+  });
+}
+
+test('should not overwrite an existing tsconfig.json', async ({ run, dir }) => {
+  const tsconfig = JSON.stringify({ compilerOptions: { strict: true } });
+  fs.writeFileSync(path.join(dir, 'tsconfig.json'), tsconfig);
+  await run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  expect(fs.readFileSync(path.join(dir, 'tsconfig.json'), 'utf8')).toBe(tsconfig);
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
+});
+
+test('should generate be able to run JS examples successfully', { lock: 'apt-get' }, async ({ run, dir, exec, packageManager }) => {
+  test.skip(packageManager === 'yarn-berry' && process.version.startsWith('v20.'), 'Playwright ESM loader cannot be loaded from the Yarn PnP cache on Node 20');
   test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
@@ -114,6 +156,7 @@ test('should generate in the root of pnpm workspace', async ({ run, packageManag
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
+  expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeTruthy();
@@ -139,6 +182,7 @@ test('should generate in the root of yarn workspaces', async ({ run, packageMana
 
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
   assertLockFilesExist(dir, packageManager);
+  expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.ts'))).toBeTruthy();
   const writesNodeModules = packageManager === 'yarn-classic';
   expect(fs.existsSync(path.join(dir, 'node_modules/playwright'))).toBe(writesNodeModules);

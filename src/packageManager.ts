@@ -18,7 +18,6 @@ import path from 'path';
 import fs from 'fs';
 
 export interface PackageManager {
-  cli: string;
   name: string
   init(): string
   npx(command: string, args: string): string
@@ -26,12 +25,10 @@ export interface PackageManager {
   i(): string
   installDevDependency(name: string): string
   runPlaywrightTest(args?: string): string
-  run(script: string): string
 }
 
 class NPM implements PackageManager {
   name = 'NPM'
-  cli = 'npm'
 
   init(): string {
     return 'npm init -y'
@@ -56,15 +53,10 @@ class NPM implements PackageManager {
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
   }
-
-  run(script: string): string {
-    return `npm run ${script}`;
-  }
 }
 
 class Yarn implements PackageManager {
   name = 'Yarn'
-  cli = 'yarn'
   private workspace: boolean
   private classic = false;
 
@@ -106,15 +98,10 @@ class Yarn implements PackageManager {
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
   }
-
-  run(script: string): string {
-    return `yarn ${script}`;
-  }
 }
 
 class PNPM implements PackageManager {
   name = 'pnpm'
-  cli = 'pnpm'
   private workspace: boolean;
 
   constructor(rootDir: string) {
@@ -143,10 +130,6 @@ class PNPM implements PackageManager {
 
   runPlaywrightTest(args: string): string {
     return this.npx('playwright', `test${args ? (' ' + args) : ''}`);
-  }
-
-  run(script: string): string {
-    return `pnpm run ${script}`;
   }
 }
 
