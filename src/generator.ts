@@ -97,7 +97,7 @@ export class Generator {
     const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
 
     const questions = [
-      !isDefinitelyTS && {
+      !isDefinitelyTS && !this.options.lang && {
         type: 'select',
         name: 'language',
         message: 'Do you want to use TypeScript or JavaScript?',
@@ -105,8 +105,6 @@ export class Generator {
           { name: 'TypeScript' },
           { name: 'JavaScript' },
         ],
-        initial: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
-        skip: !!this.options.lang,
       },
       {
         type: 'text',
@@ -119,8 +117,8 @@ export class Generator {
         type: 'confirm',
         name: 'installGitHubActions',
         message: 'Add a GitHub Actions workflow?',
-        initial: true,
-        skip: !!this.options.gha,
+        initial: this.options.gha ?? true,
+        skip: this.options.gha !== undefined,
       },
       {
         type: 'confirm',
@@ -147,6 +145,8 @@ export class Generator {
     );
     if (isDefinitelyTS)
       result.language = 'TypeScript';
+    else if (this.options.lang)
+      result.language = this.options.lang === 'js' ? 'JavaScript' : 'TypeScript';
     return result;
   }
 

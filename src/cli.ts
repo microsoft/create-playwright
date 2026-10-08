@@ -32,6 +32,7 @@ program
   .option('--beta', 'install @beta version of Playwright')
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
+  .option('--no-gha', 'do not install GitHub Actions')
   .option('--lang <language>', 'language to use (js, TypeScript)')
   .option('--test-dir <directory>', 'directory for test files (default: "tests" if it does not exist, otherwise "e2e")')
   .action(async (rootDir, options) => {
@@ -43,7 +44,8 @@ program
       installDeps: options.installDeps,
       next: options.next,
       beta: options.beta,
-      quiet: options.quiet,
+      // Prompts cannot be answered without a TTY, fall back to the --quiet defaults.
+      quiet: options.quiet || !process.stdin.isTTY,
       gha: options.gha,
       lang: options.lang,
       testDir: options.testDir,

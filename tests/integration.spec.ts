@@ -231,6 +231,37 @@ test('should not prompt and skip existing files in --quiet mode', async ({ run, 
   expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe(originalConfig);
 });
 
+test('should install GHA workflow when --gha is passed', async ({ run, dir }) => {
+  await run(['--quiet', '--gha', '--lang', 'js', '--test-dir', 'specs', '--no-browsers']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
+test('should not install GHA workflow when --no-gha is passed', async ({ run, dir }) => {
+  await run(['--quiet', '--no-gha', '--lang', 'js', '--test-dir', 'specs', '--no-browsers']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
+test('should not prompt in non-interactive terminals without --quiet', async ({ run, dir }) => {
+  await run(['--lang', 'js', '--test-dir', 'specs', '--no-browsers']);
+
+  expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeFalsy();
+  expect(fs.existsSync(path.join(dir, 'specs/example.spec.js'))).toBeTruthy();
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toContain('specs');
+});
+
+test('should not overwrite existing files in non-interactive terminals without --quiet', async ({ run, dir }) => {
+  fs.writeFileSync(path.join(dir, 'playwright.config.js'), '// existing');
+
+  await expect(run(['--lang', 'js', '--no-browsers'])).rejects.toThrowError('run again with --force');
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toBe('// existing');
+});
+
 test('is proper yarn classic', async ({ packageManager, exec }) => {
   test.skip(packageManager !== 'yarn-classic');
   const result = await exec('yarn --version', [], { cwd: test.info().outputDir, shell: true });
