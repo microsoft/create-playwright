@@ -44,7 +44,8 @@ program
       installDeps: options.installDeps,
       next: options.next,
       beta: options.beta,
-      quiet: options.quiet,
+      // Prompts cannot be answered without a TTY, fall back to the --quiet defaults.
+      quiet: options.quiet || !process.stdin.isTTY,
       gha: options.gha,
       lang: options.lang,
       testDir: options.testDir,

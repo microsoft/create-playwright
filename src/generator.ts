@@ -84,7 +84,7 @@ export class Generator {
 
     const testDir = this.options.testDir || (fs.existsSync(path.join(this.rootDir, 'tests')) ? 'e2e' : 'tests');
 
-    if (this.options.quiet || !process.stdin.isTTY) {
+    if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
         language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
@@ -95,10 +95,9 @@ export class Generator {
     }
 
     const isDefinitelyTS = fs.existsSync(path.join(this.rootDir, 'tsconfig.json'));
-    const cliOptions = this.options;
 
     const questions = [
-      !isDefinitelyTS && {
+      !isDefinitelyTS && !this.options.lang && {
         type: 'select',
         name: 'language',
         message: 'Do you want to use TypeScript or JavaScript?',
@@ -106,12 +105,6 @@ export class Generator {
           { name: 'TypeScript' },
           { name: 'JavaScript' },
         ],
-        skip(this: { index: number }) {
-          if (!cliOptions.lang)
-            return false;
-          this.index = cliOptions.lang === 'js' ? 1 : 0;
-          return true;
-        },
       },
       {
         type: 'text',
@@ -152,6 +145,8 @@ export class Generator {
     );
     if (isDefinitelyTS)
       result.language = 'TypeScript';
+    else if (this.options.lang)
+      result.language = this.options.lang === 'js' ? 'JavaScript' : 'TypeScript';
     return result;
   }
 
