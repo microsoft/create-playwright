@@ -17,6 +17,11 @@ import fs from 'fs';
 import path from 'path';
 import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from './baseFixtures';
 
+// Templates are checked out with CRLF line endings on Windows.
+function readFile(file: string): string {
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+}
+
 const validGitignore = [
   '# Playwright',
   'node_modules/',
@@ -73,6 +78,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
+  test.slow();
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
@@ -83,6 +89,7 @@ test('should generate a project in a given directory', async ({ run, dir, packag
 });
 
 test('should generate a project with JavaScript and without GHA', async ({ run, dir, packageManager }) => {
+  test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -220,7 +227,7 @@ test('should install with "npm ci" in GHA when using npm with package-lock enabl
   await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
 
-  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  const workflowContent = readFile(path.join(dir, '.github/workflows/playwright.yml'));
   expect(workflowContent).not.toContain('run: npm i');
   expect(workflowContent).toContain('run: npm ci');
   expect(workflowContent).toContain('        node-version: lts/*\n        cache: "npm"\n    - name: Install dependencies');
@@ -233,7 +240,7 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
 
-  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  const workflowContent = readFile(path.join(dir, '.github/workflows/playwright.yml'));
   expect(workflowContent).toContain('run: npm i');
   expect(workflowContent).not.toContain('run: npm ci');
   // actions/setup-node fails to cache without a lock file.
@@ -308,12 +315,12 @@ test('should accept --lang JavaScript and comma-separated --browser', async ({ r
 
   expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeFalsy();
   expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeFalsy();
-  const config = fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8');
+  const config = readFile(path.join(dir, 'playwright.config.js'));
   expect(config).toContain(`    // {\n    //   name: 'chromium',`);
   expect(config).toContain(`    {\n      name: 'firefox',`);
   expect(config).toContain(`    {\n      name: 'webkit',`);
 
-  const workflow = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  const workflow = readFile(path.join(dir, '.github/workflows/playwright.yml'));
   expect(workflow).toContain('run: npx playwright install --with-deps firefox webkit\n');
 
   // The epilogue only suggests commands and files that exist.
