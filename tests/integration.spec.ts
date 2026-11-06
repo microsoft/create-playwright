@@ -17,6 +17,11 @@ import fs from 'fs';
 import path from 'path';
 import { assertLockFilesExist, expect, packageManagerToNpxCommand, test } from './baseFixtures';
 
+// Templates are checked out with CRLF line endings on Windows.
+function readFile(file: string): string {
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+}
+
 const validGitignore = [
   '# Playwright',
   'node_modules/',
@@ -73,6 +78,7 @@ test('should generate a project in the current directory', async ({ run, dir, pa
 
 test('should generate a project in a given directory', async ({ run, dir, packageManager }) => {
   test.skip(packageManager === 'yarn-classic' || packageManager === 'yarn-berry');
+  test.slow();
   await run(['foobar'], { installGitHubActions: true, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'foobar/tsconfig.json'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'foobar/tests/example.spec.ts'))).toBeTruthy();
@@ -83,6 +89,7 @@ test('should generate a project in a given directory', async ({ run, dir, packag
 });
 
 test('should generate a project with JavaScript and without GHA', async ({ run, dir, packageManager }) => {
+  test.slow();
   await run([], { installGitHubActions: false, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, 'tests/example.spec.js'))).toBeTruthy();
   expect(fs.existsSync(path.join(dir, 'package.json'))).toBeTruthy();
@@ -196,15 +203,34 @@ test('should not duplicate gitignore entries', async ({ run, dir }) => {
   expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' }).trim()).toBe(validGitignore);
 })
 
+test('should match whole gitignore entries', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+  fs.writeFileSync(path.join(dir, '.gitignore'), 'node_modules_cache/\r\nplaywright-report/\r\n/test-results\n');
+
+  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  expect(fs.readFileSync(path.join(dir, '.gitignore'), { encoding: 'utf8' })).toBe([
+    'node_modules_cache/\r',
+    'playwright-report/\r',
+    '/test-results',
+    '',
+    '# Playwright',
+    'node_modules/',
+    '/blob-report/',
+    '/playwright/.auth/',
+    '',
+  ].join('\n'));
+})
+
 test('should install with "npm ci" in GHA when using npm with package-lock enabled', async ({ dir, run, packageManager }) => {
   test.skip(packageManager !== 'npm');
 
   await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
 
-  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  const workflowContent = readFile(path.join(dir, '.github/workflows/playwright.yml'));
   expect(workflowContent).not.toContain('run: npm i');
   expect(workflowContent).toContain('run: npm ci');
+  expect(workflowContent).toContain('        node-version: lts/*\n        cache: "npm"\n    - name: Install dependencies');
 });
 
 test('should install with "npm i" in GHA when using npm with package-lock disabled', async ({ dir, run, packageManager }) => {
@@ -214,21 +240,37 @@ test('should install with "npm i" in GHA when using npm with package-lock disabl
   await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: true });
   expect(fs.existsSync(path.join(dir, '.github/workflows/playwright.yml'))).toBeTruthy();
 
-  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  const workflowContent = readFile(path.join(dir, '.github/workflows/playwright.yml'));
   expect(workflowContent).toContain('run: npm i');
   expect(workflowContent).not.toContain('run: npm ci');
+  // actions/setup-node fails to cache without a lock file.
+  expect(workflowContent).toContain('        node-version: lts/*\n    - name: Install dependencies');
+});
+
+test('should not use the npm cache in GHA for other package managers', async ({ dir, run, packageManager }) => {
+  test.skip(packageManager === 'npm');
+
+  await run([], { installGitHubActions: true, testDir: 'tests', language: 'JavaScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
+  const workflowContent = fs.readFileSync(path.join(dir, '.github/workflows/playwright.yml'), 'utf8');
+  expect(workflowContent).not.toContain('cache:');
+  expect(workflowContent).not.toContain('//');
 });
 
 test('should not prompt and skip existing files in --quiet mode', async ({ run, dir }) => {
+  const options = { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false } as const;
   // First run: generate the project normally
-  await run([], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false });
-  const originalConfig = fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8');
+  await run([], options);
+  // Second run: unchanged files are not conflicts.
+  await run(['--quiet'], options);
 
-  // Second run: use --quiet, existing files should be skipped without prompting
-  await expect(run(['--quiet'], { installGitHubActions: false, testDir: 'tests', language: 'TypeScript', installPlaywrightDependencies: false, installPlaywrightBrowsers: false })).rejects.toThrowError("run again with --force");
-  
-  // Verify the existing file was not overwritten
-  expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe(originalConfig);
+  // Third run: modified files are not overwritten without prompting.
+  fs.writeFileSync(path.join(dir, 'playwright.config.ts'), '// modified');
+  await expect(run(['--quiet'], options)).rejects.toThrowError("run again with --force");
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toBe('// modified');
+
+  // Fourth run: --force overwrites them.
+  await run(['--quiet', '--force'], options);
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toContain('defineConfig');
 });
 
 test('should install GHA workflow when --gha is passed', async ({ run, dir }) => {
@@ -256,10 +298,53 @@ test('should not prompt in non-interactive terminals without --quiet', async ({ 
 });
 
 test('should not overwrite existing files in non-interactive terminals without --quiet', async ({ run, dir }) => {
-  fs.writeFileSync(path.join(dir, 'playwright.config.js'), '// existing');
+  fs.mkdirSync(path.join(dir, 'project'));
+  fs.writeFileSync(path.join(dir, 'project', 'playwright.config.js'), '// existing');
 
-  await expect(run(['--lang', 'js', '--no-browsers'])).rejects.toThrowError('run again with --force');
-  expect(fs.readFileSync(path.join(dir, 'playwright.config.js'), 'utf8')).toBe('// existing');
+  const error = await run(['project', '--lang', 'js', '--no-browsers']).catch(e => e);
+  expect(error.message).toContain(`These files already exist:\n  ${path.join('project', 'playwright.config.js')}\nIf you want to override them, run again with --force.`);
+  expect(fs.readFileSync(path.join(dir, 'project', 'playwright.config.js'), 'utf8')).toBe('// existing');
+  // Nothing is installed before the conflict is reported.
+  expect(error.message).not.toContain('Installing');
+  expect(fs.existsSync(path.join(dir, 'project', 'package.json'))).toBeFalsy();
+});
+
+test('should accept --lang JavaScript and comma-separated --browser', async ({ run, dir, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+  const { stdout } = await run(['--quiet', '--gha', '--lang', 'JavaScript', '--browser', 'firefox,WebKit', '--no-browsers', '--no-examples']);
+
+  expect(fs.existsSync(path.join(dir, 'playwright.config.ts'))).toBeFalsy();
+  expect(fs.existsSync(path.join(dir, 'tsconfig.json'))).toBeFalsy();
+  const config = readFile(path.join(dir, 'playwright.config.js'));
+  expect(config).toContain(`    // {\n    //   name: 'chromium',`);
+  expect(config).toContain(`    {\n      name: 'firefox',`);
+  expect(config).toContain(`    {\n      name: 'webkit',`);
+
+  const workflow = readFile(path.join(dir, '.github/workflows/playwright.yml'));
+  expect(workflow).toContain('run: npx playwright install --with-deps firefox webkit\n');
+
+  // The epilogue only suggests commands and files that exist.
+  expect(stdout).toContain('npx playwright test --project=firefox');
+  expect(stdout).not.toContain('--project=chromium');
+  expect(stdout).not.toContain('example.spec');
+  expect(stdout).not.toContain('Runs the tests in a specific file.');
+  expect(stdout).toContain(`.${path.sep}playwright.config.js - Playwright Test configuration`);
+});
+
+test('should reject unknown --lang and --browser values', async ({ run, dir }) => {
+  await expect(run(['--quiet', '--lang', 'python'])).rejects.toThrowError(`argument 'python' is invalid. Expected one of: js, ts, JavaScript, TypeScript.`);
+  await expect(run(['--quiet', '--browser', 'chrome'])).rejects.toThrowError(`argument 'chrome' is invalid. Expected a comma-separated list of: chromium, firefox, webkit.`);
+  expect(fs.existsSync(path.join(dir, 'package.json'))).toBeFalsy();
+});
+
+test('should escape --test-dir in the generated config', async ({ run, exec, dir, packageManager }) => {
+  test.skip(packageManager !== 'npm');
+  await run(['--quiet', '--no-browsers', '--test-dir', `it's $&`]);
+
+  expect(fs.readFileSync(path.join(dir, 'playwright.config.ts'), 'utf8')).toContain(`testDir: './it\\'s $&',`);
+  expect(fs.existsSync(path.join(dir, `it's $&`, 'example.spec.ts'))).toBeTruthy();
+  const tsc = require.resolve('typescript/bin/tsc');
+  await exec('node', [tsc, '-p', '.']);
 });
 
 test('is proper yarn classic', async ({ packageManager, exec }) => {

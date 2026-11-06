@@ -12,7 +12,9 @@ jobs:
     - uses: actions/setup-node@v6
       with:
         node-version: lts/*
+        //--begin-npm-cache
         cache: "npm"
+        //--end-npm-cache
     - name: Install dependencies
       run: {{installDepsCommand}}
     - name: Install Playwright Browsers
