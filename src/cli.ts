@@ -17,6 +17,7 @@
 import path from 'path';
 import { Command } from 'commander';
 import { CliOptions, Generator } from './generator';
+import { parseBrowsers, parseLanguage } from './utils';
 
 const program = new Command();
 
@@ -24,7 +25,7 @@ program
   .name('create-playwright')
   .description('Getting started with writing end-to-end tests with Playwright.')
   .argument('[rootDir]', 'Target directory for the Playwright project', '.')
-  .option('--browser <browser...>', `browsers to use in default config (default: 'chromium,firefox,webkit')`)
+  .option('--browser <browser...>', `browsers to use in default config (default: 'chromium,firefox,webkit')`, parseBrowsers)
   .option('--no-browsers', 'do not download browsers (can be done manually via \'npx playwright install\')')
   .option('--no-examples', 'do not create example test files')
   .option('--install-deps', 'install dependencies')
@@ -33,8 +34,9 @@ program
   .option('--quiet', 'do not ask for interactive input prompts')
   .option('--gha', 'install GitHub Actions')
   .option('--no-gha', 'do not install GitHub Actions')
-  .option('--lang <language>', 'language to use (js, TypeScript)')
+  .option('--lang <language>', 'language to use (js, TypeScript)', parseLanguage)
   .option('--test-dir <directory>', 'directory for test files (default: "tests" if it does not exist, otherwise "e2e")')
+  .option('--force', 'override existing files without asking')
   .action(async (rootDir, options) => {
 
     const cliOptions: CliOptions = {
@@ -49,6 +51,7 @@ program
       gha: options.gha,
       lang: options.lang,
       testDir: options.testDir,
+      force: options.force,
     };
     const resolvedRootDir = path.resolve(process.cwd(), rootDir || '.');
     const generator = new Generator(resolvedRootDir, cliOptions);

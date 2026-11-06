@@ -20,6 +20,7 @@ import path from 'path';
 
 import { prompt } from 'enquirer';
 import colors from 'ansi-colors';
+import { InvalidArgumentError } from 'commander';
 import { PromptOptions } from './generator';
 
 export type Command = {
@@ -37,29 +38,54 @@ export function executeCommands(cwd: string, commands: Command[]) {
   }
 }
 
-export async function createFiles(rootDir: string, files: Map<string, string>, force: boolean, quiet: boolean) {
-  const existingFiles = [...files.keys()].filter(f => fs.existsSync(path.join(rootDir, f)));
-  if (quiet && !force && existingFiles.length) {
-    console.log('These files already exist:');
-    for (const f of existingFiles)
-      console.log(`  ${path.relative(process.cwd(), f)}`);
-    console.log('If you want to override them, run again with --force.');
-    process.exit(1);
-    return;
-  }
-
+/**
+ * Returns the files that need to be written. Existing files with the same content are skipped.
+ * Existing files with different content are overridden with `force` or after confirmation;
+ * in quiet mode, they abort the run before anything is installed or written.
+ */
+export async function resolveFileConflicts(rootDir: string, files: Map<string, string>, options: { force: boolean, quiet: boolean }): Promise<Map<string, string>> {
+  const unchangedFiles: string[] = [];
+  const conflictingFiles: string[] = [];
   for (const [relativeFilePath, value] of files) {
     const absoluteFilePath = path.join(rootDir, relativeFilePath);
-    if (existingFiles.includes(absoluteFilePath) && !force) {
+    if (!fs.existsSync(absoluteFilePath))
+      continue;
+    if (fs.readFileSync(absoluteFilePath, 'utf-8') === value)
+      unchangedFiles.push(relativeFilePath);
+    else
+      conflictingFiles.push(relativeFilePath);
+  }
+
+  if (options.quiet && !options.force && conflictingFiles.length) {
+    console.log('These files already exist:');
+    for (const f of conflictingFiles)
+      console.log(`  ${path.relative(process.cwd(), path.join(rootDir, f))}`);
+    console.log('If you want to override them, run again with --force.');
+    process.exit(1);
+  }
+
+  const result = new Map<string, string>();
+  for (const [relativeFilePath, value] of files) {
+    if (unchangedFiles.includes(relativeFilePath))
+      continue;
+    if (conflictingFiles.includes(relativeFilePath) && !options.force) {
       const { override } = await prompt<{ override: boolean }>({
         type: 'confirm',
         name: 'override',
-        message: `${absoluteFilePath} already exists. Override it?`,
+        message: `${path.relative(process.cwd(), path.join(rootDir, relativeFilePath))} already exists. Override it?`,
         initial: false
       });
       if (!override)
         continue;
     }
+    result.set(relativeFilePath, value);
+  }
+  return result;
+}
+
+export function writeFiles(rootDir: string, files: Map<string, string>) {
+  for (const [relativeFilePath, value] of files) {
+    const absoluteFilePath = path.join(rootDir, relativeFilePath);
     console.log(colors.gray(`Writing ${path.relative(process.cwd(), absoluteFilePath)}.`));
     fs.mkdirSync(path.dirname(absoluteFilePath), { recursive: true });
     fs.writeFileSync(absoluteFilePath, value, 'utf-8');
@@ -68,7 +94,7 @@ export async function createFiles(rootDir: string, files: Map<string, string>, f
 
 export function executeTemplate(input: string, args: Record<string, string>, sections: Map<string, 'show' | 'hide' | 'comment'>): string {
   for (const key in args)
-    input = input.replace(new RegExp('{{' + key + '}}', 'g'), args[key]!);
+    input = input.replace(new RegExp('{{' + key + '}}', 'g'), () => args[key]!);
   const result: string[] = [];
   let mode: 'show' | 'hide' | 'comment' = 'show';
   let indent = '';
@@ -89,6 +115,45 @@ export function executeTemplate(input: string, args: Record<string, string>, sec
       result.push(line.slice(0, indent.length) + '// ' + line.slice(indent.length));
   }
   return result.join('\n');
+}
+
+// Escapes a value for use inside a double-quoted JSON string.
+export function escapeJSONString(value: string): string {
+  return JSON.stringify(value).slice(1, -1);
+}
+
+// Escapes a value for use inside a single-quoted JavaScript string.
+export function escapeJSString(value: string): string {
+  return escapeJSONString(value).replace(/'/g, `\\'`);
+}
+
+export const browserNames = ['chromium', 'firefox', 'webkit'] as const;
+export type BrowserName = typeof browserNames[number];
+
+export function parseBrowsers(value: string, previous: BrowserName[] = []): BrowserName[] {
+  const result = [...previous];
+  for (const name of value.split(',').map(b => b.trim().toLowerCase()).filter(Boolean)) {
+    const browser = browserNames.find(b => b === name);
+    if (!browser)
+      throw new InvalidArgumentError(`Expected a comma-separated list of: ${browserNames.join(', ')}.`);
+    if (!result.includes(browser))
+      result.push(browser);
+  }
+  if (!result.length)
+    throw new InvalidArgumentError(`Expected a comma-separated list of: ${browserNames.join(', ')}.`);
+  return result;
+}
+
+export function parseLanguage(value: string): PromptOptions['language'] {
+  switch (value.toLowerCase()) {
+    case 'js':
+    case 'javascript':
+      return 'JavaScript';
+    case 'ts':
+    case 'typescript':
+      return 'TypeScript';
+  }
+  throw new InvalidArgumentError('Expected one of: js, ts, JavaScript, TypeScript.');
 }
 
 export function languageToFileExtension(language: PromptOptions['language']): 'js' | 'ts' {

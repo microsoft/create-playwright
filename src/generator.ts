@@ -21,7 +21,7 @@ import { prompt } from 'enquirer';
 import ini from 'ini';
 
 import { type PackageManager, determinePackageManager } from './packageManager';
-import { Command, createFiles, executeCommands, executeTemplate, languageToFileExtension } from './utils';
+import { type BrowserName, browserNames, Command, escapeJSONString, escapeJSString, executeCommands, executeTemplate, languageToFileExtension, resolveFileConflicts, writeFiles } from './utils';
 
 export type PromptOptions = {
   testDir: string,
@@ -34,8 +34,8 @@ export type PromptOptions = {
 const assetsDir = path.join(__dirname, '..', 'assets');
 
 export type CliOptions = {
-  lang?: string;
-  browser?: string[];
+  lang?: PromptOptions['language'];
+  browser?: BrowserName[];
   noBrowsers?: boolean;
   noExamples?: boolean;
   installDeps?: boolean;
@@ -44,6 +44,13 @@ export type CliOptions = {
   quiet?: boolean;
   gha?: boolean;
   testDir?: string;
+  force?: boolean;
+};
+
+const browserDevices: Record<BrowserName, string> = {
+  chromium: 'Desktop Chrome',
+  firefox: 'Desktop Firefox',
+  webkit: 'Desktop Safari',
 };
 
 export class Generator {
@@ -61,14 +68,16 @@ export class Generator {
     this._printPrologue();
     const answers = await this._askQuestions();
     const { files, commands: allCommands } = await this._identifyChanges(answers);
+    // Resolve conflicts with existing files before installing anything.
+    const filesToWrite = await resolveFileConflicts(this.rootDir, files, { force: !!this.options.force, quiet: !!this.options.quiet });
     const [preCommands, postCommands] = allCommands.reduce((acc, command) => {
       acc[command.phase === 'pre' ? 0 : 1].push(command);
       return acc;
     }, [[] as Command[], [] as Command[]]);
     executeCommands(this.rootDir, preCommands);
-    await createFiles(this.rootDir, files, false, !!this.options.quiet);
+    writeFiles(this.rootDir, filesToWrite);
     this._patchGitIgnore();
-    await this._patchPackageJSON();
+    this._patchPackageJSON();
     executeCommands(this.rootDir, postCommands);
     this._printEpilogue(answers);
   }
@@ -87,7 +96,7 @@ export class Generator {
     if (this.options.quiet) {
       return {
         installGitHubActions: !!this.options.gha,
-        language: this.options.lang === 'js' ? 'JavaScript' : 'TypeScript',
+        language: this.options.lang ?? 'TypeScript',
         installPlaywrightDependencies: !!this.options.installDeps,
         testDir,
         installPlaywrightBrowsers: !this.options.noBrowsers,
@@ -146,7 +155,7 @@ export class Generator {
     if (isDefinitelyTS)
       result.language = 'TypeScript';
     else if (this.options.lang)
-      result.language = this.options.lang === 'js' ? 'JavaScript' : 'TypeScript';
+      result.language = this.options.lang;
     return result;
   }
 
@@ -156,27 +165,30 @@ export class Generator {
     const fileExtension = languageToFileExtension(answers.language);
 
     const sections = new Map<string, 'show' | 'hide' | 'comment'>();
-    for (const browserName of ['chromium', 'firefox', 'webkit'])
-      sections.set(browserName, !this.options.browser || this.options.browser.includes(browserName) ? 'show' : 'comment');
+    for (const browserName of browserNames)
+      sections.set(browserName, this._isBrowserEnabled(browserName) ? 'show' : 'comment');
+    const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
 
     if (answers.language === 'TypeScript' && !fs.existsSync(path.join(this.rootDir, 'tsconfig.json'))) {
       files.set('tsconfig.json', executeTemplate(this._readAsset('tsconfig.json'), {
-        testDir: answers.testDir || '.',
+        testDir: escapeJSONString(answers.testDir || '.'),
       }, new Map()));
     }
 
     files.set(`playwright.config.${fileExtension}`, executeTemplate(this._readAsset(`playwright.config.${fileExtension}`), {
-      testDir: answers.testDir || '',
+      testDir: escapeJSString(answers.testDir || ''),
     }, sections));
 
     if (answers.installGitHubActions) {
       const npmrcExists = fs.existsSync(path.join(this.rootDir, '.npmrc'));
       const packageLockDisabled = npmrcExists && ini.parse(fs.readFileSync(path.join(this.rootDir, '.npmrc'), 'utf-8'))['package-lock'] === false;
+      // actions/setup-node fails when the lock file for its cache is missing, so only cache npm with a package-lock.json.
+      const useNpmCache = this.packageManager.name === 'NPM' && !packageLockDisabled;
       const githubActionsScript = executeTemplate(this._readAsset('github-actions.yml'), {
         installDepsCommand: packageLockDisabled ? this.packageManager.i() : this.packageManager.ci(),
-        installPlaywrightCommand: this.packageManager.npx('playwright', 'install --with-deps'),
+        installPlaywrightCommand: this.packageManager.npx('playwright', 'install --with-deps' + browsersSuffix),
         runTestsCommand: this.packageManager.runPlaywrightTest(),
-      }, new Map());
+      }, new Map([['npm-cache', useNpmCache ? 'show' : 'hide']]));
       files.set('.github/workflows/playwright.yml', githubActionsScript);
     }
 
@@ -211,7 +223,6 @@ export class Generator {
       });
     }
 
-    const browsersSuffix = this.options.browser ? ' ' + this.options.browser.join(' ') : '';
     if (answers.installPlaywrightBrowsers) {
       commands.push({
         name: 'Downloading browsers',
@@ -224,6 +235,10 @@ export class Generator {
     files.set('.claude/skills/playwright/SKILL.md', skillContent);
 
     return { files, commands };
+  }
+
+  private _isBrowserEnabled(browserName: BrowserName) {
+    return !this.options.browser || this.options.browser.includes(browserName);
   }
 
   private _hasDependency(pkg: string) {
@@ -242,12 +257,13 @@ export class Generator {
       gitIgnore = fs.readFileSync(gitIgnorePath, 'utf-8').trimEnd() + '\n';
 
     let thisIsTheFirstLineWeAreAdding = true;
+    // Match whole lines, with or without the leading and trailing slashes.
     const valuesToAdd = {
-      'node_modules/': /^node_modules\/?/m,
-      '/test-results/': /^\/?test-results\/?$/m,
-      '/playwright-report/': /^\/playwright-report\/?$/m,
-      '/blob-report/': /^\/blob-report\/?$/m,
-      '/playwright/.auth/': /^\/playwright\/\.auth\/?$/m,
+      'node_modules/': /^\/?node_modules\/?\s*$/m,
+      '/test-results/': /^\/?test-results\/?\s*$/m,
+      '/playwright-report/': /^\/?playwright-report\/?\s*$/m,
+      '/blob-report/': /^\/?blob-report\/?\s*$/m,
+      '/playwright/.auth/': /^\/?playwright\/\.auth\/?\s*$/m,
     };
     Object.entries(valuesToAdd).forEach(([value, regex]) => {
       if (!gitIgnore.match(regex)) {
@@ -266,52 +282,51 @@ export class Generator {
     return fs.readFileSync(path.isAbsolute(asset) ? asset : path.join(assetsDir, asset), 'utf-8');
   }
 
-  private async _patchPackageJSON() {
+  private _patchPackageJSON() {
     const packageJSON = JSON.parse(fs.readFileSync(path.join(this.rootDir, 'package.json'), 'utf-8'));
     if (!packageJSON.scripts)
       packageJSON.scripts = {};
     if (packageJSON.scripts['test']?.includes('no test specified'))
       delete packageJSON.scripts['test'];
 
-    const files = new Map<string, string>();
-    files.set('package.json', JSON.stringify(packageJSON, null, 2) + '\n'); // NPM keeps a trailing new-line
-    await createFiles(this.rootDir, files, true, false);
+    writeFiles(this.rootDir, new Map([['package.json', JSON.stringify(packageJSON, null, 2) + '\n']])); // NPM keeps a trailing new-line
   }
 
   private _printEpilogue(answers: PromptOptions) {
     console.log(colors.green('✔ Success!') + ' ' + colors.bold(`Created a Playwright Test project at ${this.rootDir}`));
     const pathToNavigate = path.relative(process.cwd(), this.rootDir);
     const prefix = pathToNavigate !== '' ? `  cd ${pathToNavigate}\n` : '';
-    const exampleSpecPath = path.join(answers.testDir, `example.spec.${languageToFileExtension(answers.language)}`);
-    const playwrightConfigPath = `playwright.config.${languageToFileExtension(answers.language)}`;
+    const fileExtension = languageToFileExtension(answers.language);
+    const project = browserNames.find(b => this._isBrowserEnabled(b)) ?? 'chromium';
+
+    const commands: [string, string][] = [
+      [this.packageManager.runPlaywrightTest(), 'Runs the end-to-end tests.'],
+      [this.packageManager.runPlaywrightTest('--ui'), 'Starts the interactive UI mode.'],
+      [this.packageManager.runPlaywrightTest(`--project=${project}`), `Runs the tests only on ${browserDevices[project]}.`],
+    ];
+    if (!this.options.noExamples)
+      commands.push([this.packageManager.runPlaywrightTest('example'), 'Runs the tests in a specific file.']);
+    commands.push(
+      [this.packageManager.runPlaywrightTest('--debug'), 'Runs the tests in debug mode.'],
+      [this.packageManager.npx('playwright', 'codegen'), 'Auto generate tests with Codegen.'],
+    );
+
+    const filesToCheck: [string, string][] = [];
+    if (!this.options.noExamples)
+      filesToCheck.push([path.join(answers.testDir, `example.spec.${fileExtension}`), 'Example end-to-end test']);
+    filesToCheck.push([`playwright.config.${fileExtension}`, 'Playwright Test configuration']);
+
     console.log(`
 Inside that directory, you can run several commands:
 
-  ${colors.cyan(this.packageManager.runPlaywrightTest())}
-    Runs the end-to-end tests.
-
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--ui'))}
-    Starts the interactive UI mode.
-
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--project=chromium'))}
-    Runs the tests only on Desktop Chrome.
-
-  ${colors.cyan(this.packageManager.runPlaywrightTest('example'))}
-    Runs the tests in a specific file.
-
-  ${colors.cyan(this.packageManager.runPlaywrightTest('--debug'))}
-    Runs the tests in debug mode.
-
-  ${colors.cyan(this.packageManager.npx('playwright', 'codegen'))}
-    Auto generate tests with Codegen.
+${commands.map(([command, description]) => `  ${colors.cyan(command)}\n    ${description}`).join('\n\n')}
 
 We suggest that you begin by typing:
 
   ${colors.cyan(prefix + '  ' + this.packageManager.runPlaywrightTest())}
 
 And check out the following files:
-  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, exampleSpecPath) : exampleSpecPath} - Example end-to-end test
-  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, playwrightConfigPath) : playwrightConfigPath} - Playwright Test configuration
+${filesToCheck.map(([file, description]) => `  - .${path.sep}${pathToNavigate ? path.join(pathToNavigate, file) : file} - ${description}`).join('\n')}
 
 Visit https://playwright.dev/docs/intro for more information. ✨
 
